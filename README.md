@@ -1,6 +1,5 @@
 # Programing-project
 Name : Daphne Box  
-
 Student number	: 10455701
 
 ## Background of the project

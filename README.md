@@ -17,5 +17,5 @@ The data set that is used to build this website comes from kaggle.com.
 Furthermore, I will likely need to use the following libraries: d3, d3-tip, d3-queue, topojson/datamaps.  
 
 ## Visualisation
-
+![](doc/basic_idea_webpage.png)
 

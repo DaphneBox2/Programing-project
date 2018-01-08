@@ -3,7 +3,7 @@ Name: Daphne Box
 Student number: 10455701
 
 ## Background of the project
-The last couple of years the idea of a basic income is regaining public interest and the discussion about the concept of an unconditional income to all citizens of a country resurgence.
+The last couple of years the idea of a basic income is regaining public interest and the discussion about the basic income resurgence.
 Due to the increased interest, it is worthwhile to investigate the brought opinion about the basic income and if there is a relation between opinion about basic income and demographics in different European countries.
 
 ## Problem statement

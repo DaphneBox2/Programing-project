@@ -7,7 +7,9 @@ The data about the basic income opinions comes from Kaggle.com and is a download
 
 ## Filters and data transformaties
 Map: for the map the question selected in the drop-down menu is used to filter the data on question, the 4 different answers on the question are counted and the most selected choice for a country is shown in a specified color on the map.
+
 Barchart: filter on question and clicked country, at start the percentages of the answers is shown, when the parallel orientations graph is clicked the percentages of the answers is shown per selected demographic unit of the population that is selected.   
+
 Parallel orientations graph: parallel orientations graph shows the demographics of the correspondents of the questionaire and their answers when clicked on a certain bar of the bar graph the chart changes to select/show the demographics of the people that have given a certain answer.
 
 ## Technical component diagram

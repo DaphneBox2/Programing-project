@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Daphne Box,
+ 10455701 -->
+
+<html>
+  <head>
+   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  	<script src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script src="//d3js.org/topojson.v1.min.js"></script>
+    <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
+    <script src="programming_project.js"></script>
+    <link rel="stylesheet" type="text/css" href="programming_project.css">
+  </head>
+  <body>
+    <h>Opinions about basic income</h>
+    <br>
+    <p1 face = "arial" font-size = "12">
+    Daphne Box, data-set comes from 
+    <a href = "https://www.kaggle.com/datasets">Kaggle</a>
+    and is produced by Dalia.
+    </p1>
+    
+    <!-- tab links -->
+    <div class="tab">
+      <button class="tabLinks" onclick="showInfo(event,'info')">Info</button>
+      <button class="tabLinks" onclick="showInfo(event,'data')">Data</button>
+    </div>
+
+    <!-- tab content -->
+    <div id="info" class="tabContent">
+      <h3>Basic income, what is it?</h3>
+      <p>!!!???!!!</p>
+    </div>
+
+    <div id="data" class="tabContent">
+      <h3>Data</h3>
+      <br><br><br><br><br>
+      <svg class="chart"></svg>
+    </div>
+
+  </body>
+</html>

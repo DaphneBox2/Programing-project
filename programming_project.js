@@ -27,22 +27,38 @@ json of Europe comes from: https://geojson-maps.ash.ms/
 function drawMap(){
 	(function(){
 		var center, countries, height, path, projection, scale, svg, width;
-		width = 300;
+		width = 700;
 		height = 400;
 		center = [5, 70];
 		scale = 600;
-		projection = d3.geo.mercator().scale(scale).translate([width / 2, 0]).center(center);
-		path = d3.geo.path().projection(projection);
-		svg = d3.select("body").append("svg").attr("height", height).attr("width", width);
-		countries = svg.append("g");
-		d3.json("scripts/ecustomEuropeMap.json", function(data) {
-			countries.selectAll('.country')
-			.data(topojson.feature(data, data.objects.europe).features)
-			.enter()
-			.append('path')
-			.attr('class', 'country')
-			.attr('d', path);
-			return;
+		projection = d3.geo
+			.mercator()
+			.scale(scale)
+			.translate([width / 2, 0])
+			.center(center);
+		path = d3.geo
+			.path()
+			.projection(projection);
+		svg = d3.select(".map")
+			.attr("height", height)
+			.attr("width", width);
+		// countries = svg.append("g");
+		d3.json("scripts/customEuropeMap.json", function(error, data) {
+			if (error){
+				throw error;
+			}
+			console.log(data);
+			console.log("topojson", data);
+			var geojson = topojson.feature(data, data.geometry);
+			console.log(geojson);
+			// countries.selectAll('.country')
+			svg.append("path")
+				.datum(topojson.feature(data, data.object))
+				.enter()
+				.append('path')
+				.attr('class', 'country')
+				.attr('d', path);
+				return;
 		});
 	}).call(this);
 }
@@ -57,19 +73,15 @@ function drawMap(){
 
 // updateParallelCoordinatesGraph function
 
-// showInfo function
+/* showInfo function
+code for tab funtionality is derived from: https://www.w3schools.com/howto/howto_js_tabs.asp
+*/
 function showInfo(evt,show){
 	// declare all variables
 	var i, tabContent, tabLinks;
 
 	// get tabContent elements and hide them
 	tabContent = document.getElementsByClassName("tabContent");
-	// if (tabContent.style.display === "none"){
-	// 	tabContent.style.display = "block";
-	// }
-	// else {
-	// 	tabContent.style.display = "none";
-	// }
 	for(i = 0; i < tabContent.length; i++){
 		tabContent[i].style.display = "none";
 	}

@@ -15,6 +15,7 @@ window.onload = function main(){
 		})
 		console.log(question);
 		drawMap();
+		colorMap(question);
 	})
 }
 
@@ -28,9 +29,9 @@ function drawMap(){
 	(function(){
 		var center, countries, height, path, projection, scale, svg, width;
 		width = 700;
-		height = 400;
+		height = 1000;
 		center = [5, 70];
-		scale = 600;
+		scale = 500;
 		projection = d3.geo
 			.mercator()
 			.scale(scale)
@@ -42,25 +43,30 @@ function drawMap(){
 		svg = d3.select(".map")
 			.attr("height", height)
 			.attr("width", width);
-		// countries = svg.append("g");
-		d3.json("scripts/customEuropeMap.json", function(error, data) {
+		
+		d3.json("scripts/customEuropeMap_topojson.json", function(error, data) {
 			if (error){
 				throw error;
 			}
-			console.log(data);
-			console.log("topojson", data);
-			var geojson = topojson.feature(data, data.geometry);
-			console.log(geojson);
-			// countries.selectAll('.country')
-			svg.append("path")
-				.datum(topojson.feature(data, data.object))
+
+			var europeMap = topojson.feature(data, data.objects.customEuropeMap);
+			console.log(europeMap);
+
+			svg.selectAll(".europeMap")
+					.data(topojson.feature(data, data.objects.customEuropeMap).features)
 				.enter()
-				.append('path')
-				.attr('class', 'country')
-				.attr('d', path);
-				return;
+				.append("path")
+					.attr("id", function(d) {return d.properties.sov_a3;})
+					.attr("stroke", "#000000")
+					.attr("fill", "#ffffff")
+					.attr('d', path);
 		});
 	}).call(this);
+}
+
+// colorMap function
+function colorMap(){
+
 }
 
 // updateMap function

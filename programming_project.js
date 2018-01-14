@@ -7,15 +7,17 @@ this javascript file is the main file for my programming project where all impor
 window.onload = function main(){
 	// load data
 	d3.csv("basic_income_dataset_dalia.csv", function(data){
+		
 		// select question, to start with only data from question vote for will be selected!!!
 		var question = [];
+		var countries = [];
 		data.forEach(function(d){
 			question.push(d.question_bbi_2016wave4_basicincome_vote);
-			// console.log(question);
+			countries.push(d.country_code);
 		})
 		console.log(question);
 		drawMap();
-		colorMap(question);
+		// colorMap(question, countries);
 	})
 }
 
@@ -27,7 +29,7 @@ json of Europe comes from: https://geojson-maps.ash.ms/
 */
 function drawMap(){
 	(function(){
-		var center, countries, height, path, projection, scale, svg, width;
+		var center, height, path, projection, scale, svg, width;
 		width = 700;
 		height = 1000;
 		center = [5, 70];
@@ -65,9 +67,17 @@ function drawMap(){
 }
 
 // colorMap function
-function colorMap(){
-
-}
+// function colorMap(question, countries){
+// 	d3.csv("countyCodes.csv", function(data){
+// 		for (var i = 0; i < data.A2.length; i++){
+// 			for (var j = 0; j < countries.length; j++){
+// 				if (data.A2[i] == countries[j]){
+					
+// 				}
+// 			}
+// 		}
+// 	}
+// }
 
 // updateMap function
 

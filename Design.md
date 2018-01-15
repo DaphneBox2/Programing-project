@@ -19,6 +19,7 @@ Parallel orientations graph: parallel orientations graph shows the demographics 
 * Main (loads the data and calls all the functions)
 * Function for dropdown
 * Function for map
+* Function to color the map
 * Function for bar graph
 * Function for parallel orientations graph
 * Update function for bargraph and parallel orientations graph after map click

@@ -19,3 +19,7 @@ Today a start with the programming for the webpage was made that mainly included
 
 ## Friday 12th of January 2018
 Further progress with the map was made, the countries of Europe can be drawn and a start was made to make determine the colors of the map. However with the last step it was discovered that the countries codes of the map were displayed in three letter codes and the countries codes in the data set were two letter codes. Therefore a start was made to write a conversion file in python that includes all data and a two and three letter country code.
+
+## Monday 13th of January 2018
+Today I spend the day to incorporate bootstrap to my tab that shows the data visualisations. This first did not seem to work unless one class mate pointed at the fact that I should include certain tags in the header. Than it was immedeately working.
+The other I did today was to convert my data so that it included the three country codes as well. First the computer put all the data in one column. Then I solved it by including a comma behind all variables and column names, but the computer still could not read the file correctly because all fields except the first columns contained an additional space. In the end it turned out that this space was included and all extra comma's needed to be included because I wrote in python that the writer file should deliminiter on comma instead of space.

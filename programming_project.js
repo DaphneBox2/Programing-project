@@ -6,18 +6,21 @@ this javascript file is the main file for my programming project where all impor
 // main function
 window.onload = function main(){
 	// load data
-	d3.csv("basic_income_dataset_dalia.csv", function(data){
+	d3.csv("basicIncomeDoubleCountries.csv", function(data){
 		
+		// console.log(data);
 		// select question, to start with only data from question vote for will be selected!!!
-		var question = [];
-		var countries = [];
-		data.forEach(function(d){
-			question.push(d.question_bbi_2016wave4_basicincome_vote);
-			countries.push(d.country_code);
-		})
-		console.log(question);
+		// var question = [];
+		// var countries = [];
+		// data.forEach(function(d){
+		// 	console.log(d.country_code_3);
+		// 	question.push(d.basic_income_vote, d.country_code_3);
+		// 	countries.push(d.country_code_3);
+		// })
+		// console.log(question);
+		// console.log(countries);
 		drawMap();
-		// colorMap(question, countries);
+		colorMap(data);
 	})
 }
 
@@ -42,7 +45,9 @@ function drawMap(){
 		path = d3.geo
 			.path()
 			.projection(projection);
-		svg = d3.select(".map")
+		column = d3.select(".map");
+				
+		svg = column.select("svg")		
 			.attr("height", height)
 			.attr("width", width);
 		
@@ -67,17 +72,9 @@ function drawMap(){
 }
 
 // colorMap function
-// function colorMap(question, countries){
-// 	d3.csv("countyCodes.csv", function(data){
-// 		for (var i = 0; i < data.A2.length; i++){
-// 			for (var j = 0; j < countries.length; j++){
-// 				if (data.A2[i] == countries[j]){
-					
-// 				}
-// 			}
-// 		}
-// 	}
-// }
+function colorMap(data){
+	console.log(data);
+}
 
 // updateMap function
 

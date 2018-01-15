@@ -2,14 +2,32 @@
 <!-- Daphne Box,
  10455701 -->
 
+<!-- Set up for bootstrap is used from: https://www.w3schools.com/bootstrap/tryit.asp?filename=trybs_temp_blog&stacked=h -->
 <html>
   <head>
-   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   	<script src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     <script src="//d3js.org/topojson.v1.min.js"></script>
     <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="programming_project.js"></script>
+      <style>
+        /* Set height of the grid so .sidenav can be 100% (adjust if needed) */
+        .row.content {height: 1500px}
+
+        /* On small screens, set height to 'auto' for sidenav and grid */
+        @media screen and (max-width: 767px) {
+          .sidenav {
+            height: auto;
+            padding: 15px;
+          }
+          .row.content {height: auto;} 
+        }
+    </style>
     <link rel="stylesheet" type="text/css" href="programming_project.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   </head>
   <body>
     <h>Opinions about basic income</h>
@@ -35,8 +53,18 @@
     <div id="data" class="tabContent">
       <h3>Data</h3>
       <br><br><br><br><br>
-      <svg class="map"></svg>
-      <svg class="chart"></svg>
+      <div class="container-fluid">
+        <div class="row content">
+          <div class="col-sm-6 map">
+            <h4>Map of Europe</h4>
+            <svg class="map"></svg>
+          </div>
+          <div class="col-sm-6 charts">
+            <h5>Bar chart</h5>
+            <svg class="chart"></svg>
+          </div>
+        </div>
+      </div>
     </div>
 
   </body>

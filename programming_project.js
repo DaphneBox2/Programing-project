@@ -19,8 +19,8 @@ window.onload = function main(){
 		// })
 		// console.log(question);
 		// console.log(countries);
-		drawMap();
-		colorMap(data);
+		drawMap(data);
+		// colorMap(data);
 	})
 }
 
@@ -30,7 +30,7 @@ window.onload = function main(){
 code comes from: http://bl.ocks.org/milafrerichs/69035da4707ea51886eb
 json of Europe comes from: https://geojson-maps.ash.ms/
 */
-function drawMap(){
+function drawMap(dataColors){
 	(function(){
 		var center, height, path, projection, scale, svg, width;
 		width = 700;
@@ -65,15 +65,111 @@ function drawMap(){
 				.append("path")
 					.attr("id", function(d) {return d.properties.sov_a3;})
 					.attr("stroke", "#000000")
-					.attr("fill", "#ffffff")
+					.attr("fill", "#E0E0E0")
 					.attr('d', path);
+
+			colorMap(dataColors);
 		});
+
+		
 	}).call(this);
 }
 
 // colorMap function
 function colorMap(data){
 	console.log(data);
+
+
+	// declare necessary variables, choice variables are declared in order of description of codebook_basicIncome.pdf file
+	var countryList = [];
+	var totalParticipants = 0;
+	var choice1 = 0;
+	var choice2 = 0;
+	var choice3 = 0;
+	var choice4 = 0;
+	var choice5 = 0;
+	var other = 0;
+
+	for( var i = 1; i < data.length; i++ ){
+
+		// determine how many countries are surveyed
+		if( data[ i - 1 ].country_code_3 != data[ i ].country_code_3 ){
+			countryList.push( data[i - 1].country_code_3 );
+		}
+	}
+
+	// loop through the list of all surveyed countries
+	for( var j = 0; j < countryList.length; j++){
+
+		for( var k = 0; k < data.length; k++){
+
+			// check if participant belongs to current check country
+			if( countryList[j] == data[k].country_code_3 ){
+				
+				// count chosen options for participants per country
+				if( data[ k ].basic_income_vote == "I would vote for it"){
+					choice1 = choice1 + 1;
+				}
+				
+				else if( data[ k ].basic_income_vote == "I would probably vote for it"){
+					choice2 = choice2 + 1;
+				}
+				
+				else if( data[ k ].basic_income_vote == "I would probably vote against it"){
+					choice3 = choice3 + 1;
+				}
+				
+				else if( data[ k ].basic_income_vote == "I would vote against it"){
+					choice4 = choice4 + 1;
+				}
+				
+				else if( data[ k ].basic_income_vote == "I would not vote"){
+					choice5 = choice5 + 1;
+				}
+				
+				else{
+					other = other + 1;
+				}
+			totalParticipants =+ 1;
+			}
+		}
+
+		// determine which options is chosen most often and determine color
+		var choicesList = [ "choice1", "choice2", "choice3", "choice4", "choice5", "other" ];
+		var mostChosen = [ choice1, choice2, choice3, choice4, choice5, other ];
+		var colorCountries = [ "#B71C1C", "#E57373", "#64B5F6", "#0D47A1", "#616161" ];
+		var choiceMax = 0;
+		var choiceVar = "";
+		var choiceColor;
+
+		for( var l = 0; l < mostChosen.length; l++ ){
+
+			if( choiceMax < mostChosen[ l ]){
+
+				choiceMax = mostChosen[ l ];
+				choiceVar = choicesList[ l ];
+				choiceColor = colorCountries[ l ];
+			}
+		}
+		
+		mostChosenPercentage = ( choiceMax / totalParticipants ) * 100;
+		console.log("country:", countryList[ j ], "most chosen:", choiceVar, "with percentage:", mostChosenPercentage, choiceColor);
+
+		// color country
+		var currentCountry = "#" + countryList[ j ] + "";
+		console.log((currentCountry));
+
+		d3.select(currentCountry)
+			.attr("fill", choiceColor);
+		
+		// set data to zero for next country
+		choice1 = 0;
+		choice2 = 0;
+		choice3 = 0;
+		choice4 = 0;
+		choice5 = 0;
+		other = 0;
+	}
 }
 
 // updateMap function

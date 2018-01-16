@@ -23,3 +23,7 @@ Further progress with the map was made, the countries of Europe can be drawn and
 ## Monday 13th of January 2018
 Today I spend the day to incorporate bootstrap to my tab that shows the data visualisations. This first did not seem to work unless one class mate pointed at the fact that I should include certain tags in the header. Than it was immedeately working.
 The other I did today was to convert my data so that it included the three country codes as well. First the computer put all the data in one column. Then I solved it by including a comma behind all variables and column names, but the computer still could not read the file correctly because all fields except the first columns contained an additional space. In the end it turned out that this space was included and all extra comma's needed to be included because I wrote in python that the writer file should deliminiter on comma instead of space.
+
+## Tuesday 14th of January 2018
+I have spend most of the day for coloring the countries which had mostly troubles because of asynchronity. When that was solved it turned out that not all id's of the card were normal three country codes but that changing the codes manually did only solve the problem partially. At the end of the day card looked like this: 
+![](doc/card20180116.png)

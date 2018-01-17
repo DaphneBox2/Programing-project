@@ -13,7 +13,7 @@ Barchart: filter on question and clicked country, at start the percentages of th
 Parallel orientations graph: parallel orientations graph shows the demographics of the correspondents of the questionaire and their answers when clicked on a certain bar of the bar graph the chart changes to select/show the demographics of the people that have given a certain answer.
 
 ## Technical component diagram
-![](doc/design_image.png)
+![](doc/design_image2.png)
 
 ## Code components
 * Main (loads the data and calls all the functions)
@@ -21,6 +21,7 @@ Parallel orientations graph: parallel orientations graph shows the demographics 
 * Function for map
 * Function to color the map
 * Function for bar graph
+* Function to calculate the total choice responses of participants per country
 * Function for parallel orientations graph
 * Update function for bargraph and parallel orientations graph after map click
 * Update function bar graph after selection of parallel orientations graph

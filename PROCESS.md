@@ -33,3 +33,10 @@ I have finished the coloring of the map by changing the three letter country cod
 
 ## Thursday 16th of January 2018
 Today I spend my day by trying to finish the bar chart and making the parallel orientations graph. I wrote the code for the parallel orientations graph but it still contianed errors at the end of the day. For the bar graph I figured out what was wrong (I had some variables declared with the wrong name) so, I do have all the tags in my console but unfortunately my graph still has some placing issues which I hope to tackle tomorrow. As a last thing I implemented my style decisions into the javascript file that I currently have.
+
+## Friday 17th of January 2018
+Spend most of the day before presentations trying to fix all the errors for the parallel coordinates graph. In the end the axis were shown but no values or lines were on the axis. Next Monday, I hope to fix those problems.
+
+## Monday 22nd of January 2018
+Tried to get the parallel coordinates working, unfortunately the axis still did not get any values however some lines were shown. Hopefully, I can get some help with this problem tomorrow.
+Furthermore, I spend some time making the graph interactive. On hover countries change color and correspond on a click but window with country name is not shown. Tomorrow, I will make the country label work and the function for question selection and it's influence on country color and hopefully get the parallel orientations working and the map and bar chart interactive together.

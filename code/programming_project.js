@@ -155,7 +155,7 @@ function drawBarGraph( data ) {
 	}
 	
 	// state dimensions
-	var margin = { top: 100, right: 30, bottom: 30, left: 30 };
+	var margin = { top: 30, right: 30, bottom: 100, left: 50 };
 	var width = 400 - margin.left - margin.right;
 	var height = 500 - margin.top - margin.bottom;
 
@@ -170,8 +170,8 @@ function drawBarGraph( data ) {
 	y.domain( [0, d3.max( dataCountryPercentages, function ( d ) { return d.percentage; } )] );
 
 	var chart = d3.select( ".barChart" )
-		.attr( "width", width )
-		.attr( "height", height );
+		.attr( "width", ( width + margin.left + margin.right ) )
+		.attr( "height", ( height + margin.top + margin.bottom ) );
 
 	var barWidth = width / dataCountryPercentages.length;
 
@@ -179,13 +179,12 @@ function drawBarGraph( data ) {
 			.data( dataCountryPercentages )
 		.enter()
 		.append( "g" )
-			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice )) + ",0 )"; } );
+			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice ) ) + ",0 )"; } );
 
 	bar.append( "rect" )
-		.attr( "x", function( d ) { return x( d.choice ); } )
 		.attr( "y", function( d ) { return y( d.percentage ); } )
-		.attr( "height", function( d ) { ( height - y( d.percentage ) ); } )
-		.attr( "width", barWidth - 1 )
+		.attr( "height", function( d ) { return ( height - y( d.percentage ) ); } )
+		.attr( "width", ( barWidth - 5 ) ) 
 		.attr( "fill", "blue" );
 
 	bar.append( "text" )
@@ -201,13 +200,14 @@ function drawBarGraph( data ) {
 
 	chart.append( "g" )
 		.attr( "class", "x axis" )
-		.attr( "transform", "translate( 30," + height + " )" )
+		.attr( "transform", "translate(" + margin.left + "," + height + " )" )
 		.call( xAxis );	
 	
 	chart.append( "text" )
 		.attr( "class", "label" )
 		.attr( "x", width )
 		.attr( "y", height + 30 )
+		.attr("transform", "translate(" + (width / 2) + ", 20)")
 		.style( "text-anchor", "end" )
 		.text( "choice" );
 
@@ -217,13 +217,14 @@ function drawBarGraph( data ) {
 
 	chart.append( "g" )
 		.attr( "class", "y axis" )
-		.attr( "transform", "translate( 30," + height + " )" )
+		.attr( "transform", "translate(" + margin.left + ", 0 )" )
 		.call( yAxis );	
 	
 	chart.append( "text" )
 		.attr( "class", "label" )
-		.attr( "x", 100 )
-		.attr( "y", 10 )
+		.attr( "x", -30 )
+		.attr( "y", 20 )
+		.attr( "transform", "rotate( -90 )" )
 		.style( "text-anchor", "end" )
 		.text( "percentage" );
 }
@@ -239,7 +240,7 @@ function drawParallelCoordinatesGraph( data ) {
 
 	// state dimentions
 	var margin = { top: 100, right: 30, bottom: 30, left: 30 };
-	var width = 400 - margin.left - margin.right;
+	var width = 500 - margin.left - margin.right;
 	var height = 500 - margin.top - margin.bottom;
 
 	// declare other variables
@@ -264,59 +265,60 @@ function drawParallelCoordinatesGraph( data ) {
 		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
 			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
 			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" 
-			&& ( y[d] = d3.scale.linear()
+			&& ( y[d] = d3.scale.ordinal().rangePoints( [0, height] )
 			.domain( d3.extent( data, function( p ) { return + p[d]; } ) )
 			.range( [height, 0] ) )
 	} ) );
 	
+	// make path for lines
+	var path = function( d ) { line( dimensions.map( function( p ) { console.log(y[p](d[p])) ; return [x( p ), y[p]( d[p] )]; } ) ) };
+	console.log(typeof(path));
 	// add grey background lines for context
 	background = chart.append( "g" )
-    	.attr( "class", "background" )
-    .selectAll( "path" )
-    	.data( data )
-    .enter()
-    .append( "path" )
-    	.attr( "d", path );
+			.attr( "class", "background" )
+		.selectAll( "path" )
+			.data( data )
+		.enter()
+		.append( "path" )
+		.attr( "d", path );
 
 	// add blue foreground lines for focus
-	foreground = svg.append( "g" )
-    	.attr( "class", "foreground" )
-    .selectAll( "path" )
-    	.data( data )
-    .enter()
-    .append( "path" )
-    	.attr( "d", path );
+	foreground = chart.append( "g" )
+			.attr( "class", "foreground" )
+		.selectAll( "path" )
+			.data( data )
+		.enter()
+		.append( "path" )
+		.attr( "d", path );
 
   // add a group element for each dimension
   var g = chart.selectAll( ".dimension" )
   		.data( dimensions )
 	.enter()
 	.append( "g" )
-		.attr( "class", "dimension" );
-		// .attr( "transform", function( d ) { retrurn "translate( " + x(d) + " )"; } );
+		.attr( "class", "dimension" )
+		.attr( "transform", function( d ) { return "translate( " + x(d) + " )"; } );
 
 	// add an axis and title
-	g.append( "g" )
+	chart.selectAll( ".dimension" )
+		.append( "g" )
 			.attr( "class", "axis" )
-			.each( function( d ) { d3.select( this ).call( axis.scale( y )[d] ); } ) 
+			.each( function( d ) { d3.select( this ).call(axis.scale( y[d] )); } ) 
 		.append( "text" )
 			.style( "text-anchor", "middle" )
 			.attr( "y", -9 )
-			.text()
+			.text( function( d ) { return d; });
 
 	// add and store a brush for each axis
 	g.append( "g" )
 			.attr( "class", "brush" )
 			.each( function( d ) { d3.select( this ).call( y[d].brush = d3.svg.brush().y( y[d] ).on( "brush", brush ) ); } ) 
-		selectAll( "rect" )
+		.selectAll( "rect" )
 			.attr( "x", -8 )
 			.attr( "width", 16 );
 
 	// returns path for given data point
-	function path ( d ) {
-
-		return line( dimensions.map( function ( p ) { return [x( p ), y[p]( d[p] )]; } ) );
-	}
+	
 
 	// handles a brush event, toggling the display of foreground lines
 	function brush() {

@@ -52,24 +52,15 @@ function drawMap( dataColors ) {
 					.data( topojson.feature( data, data.objects.customgeo3 ).features )
 				.enter()
 				.append( "path" )
-					.attr( "class", "country")
 					.attr( "id", function( d ) { return d.properties.sov_a3; } )
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
-					.attr( "d", path )
-					.on( "mouseover", function( d ){ d3.select( this )
-							.style( "opacity", 0.5 ) 
-						d3.select( this ).append( "text" )
-						.attr("class", "countryName")
-						.text( d.properties.sovereignt ) } )
-					.on( "mouseout", function( d ){ d3.select( this )
-							.style( "opacity", 1 ) 
-						d3.select( ".countryName" )
-							.remove() } )
-					.on( "click", function(){ updateBarGraph() } );
+					.attr( 'd', path );
 
 			colorMap( dataColors );
-		});	
+		});
+
+		
 	}).call( this );
 }
 
@@ -140,9 +131,6 @@ function colorMap( data ) {
 }
 
 // updateMap function
-
-function updateMap(){
-}
 
 /*
 drawBarGraph function
@@ -242,10 +230,6 @@ function drawBarGraph( data ) {
 }
 
 // updateBarGraph function
-
-function updateBarGraph(){
-	console.log("hoi");
-}
 
 /*
  drawParallelCoordinatesGraph function

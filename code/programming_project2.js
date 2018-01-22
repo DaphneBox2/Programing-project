@@ -52,24 +52,15 @@ function drawMap( dataColors ) {
 					.data( topojson.feature( data, data.objects.customgeo3 ).features )
 				.enter()
 				.append( "path" )
-					.attr( "class", "country")
 					.attr( "id", function( d ) { return d.properties.sov_a3; } )
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
-					.attr( "d", path )
-					.on( "mouseover", function( d ){ d3.select( this )
-							.style( "opacity", 0.5 ) 
-						d3.select( this ).append( "text" )
-						.attr("class", "countryName")
-						.text( d.properties.sovereignt ) } )
-					.on( "mouseout", function( d ){ d3.select( this )
-							.style( "opacity", 1 ) 
-						d3.select( ".countryName" )
-							.remove() } )
-					.on( "click", function(){ updateBarGraph() } );
+					.attr( 'd', path );
 
 			colorMap( dataColors );
-		});	
+		});
+
+		
 	}).call( this );
 }
 
@@ -140,9 +131,6 @@ function colorMap( data ) {
 }
 
 // updateMap function
-
-function updateMap(){
-}
 
 /*
 drawBarGraph function
@@ -243,10 +231,6 @@ function drawBarGraph( data ) {
 
 // updateBarGraph function
 
-function updateBarGraph(){
-	console.log("hoi");
-}
-
 /*
  drawParallelCoordinatesGraph function
 code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostock/1341021
@@ -254,42 +238,68 @@ code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostoc
 
 function drawParallelCoordinatesGraph( data ) {
 
+	console.log(data);
 	// state dimentions
 	var margin = { top: 100, right: 30, bottom: 30, left: 30 };
-	var width = 700 - margin.left - margin.right;
-	var height = 700 - margin.top - margin.bottom;
+	var width = 500 - margin.left - margin.right;
+	var height = 500 - margin.top - margin.bottom;
 
 	// declare other variables
-	var x = d3.scale.ordinal().rangePoints( [0, width], 1 );
+	// var x = d3.scale.ordinal().rangePoints( [0, width], 1 );
 	var y = {};
 	
-	var line = d3.svg.line();
 	var axis = d3.svg.axis()
 		.orient( "left" );
+
+	var line = d3.svg.line()
+		.defined(function(d) { return !isNaN(d[1]); });;
 	
 	var background;
 	var foreground;
 
 	var chart = d3.select( ".parallelOrientations" )
 			.attr( "width", width + margin.left + margin.right )
-			.attr( "height", height + margin.top + margin.bottom )
+			.attr( "heigth", height + margin.top + margin.bottom )
 		.append( "g" )
 			.attr( "transform", "translate( " + margin.left + "," + margin.top + " )" );
 
-	// extract list of dimensions and create a scale for each
-	x.domain( dimensions = d3.keys( data[0] )
-		.filter( function( d ) {console.log(d); return d != "countryCode2" && d != "countryCode3" && d != "age" 
+	// make filter for all data that needs to be included in the graph
+	var filter = d3.keys( data[0] )
+		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
 			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
-			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" 
-			&& ( y[d] = d3.scale.ordinal().rangePoints( [0, height] )
-			.domain( d3.extent( data, function( p ) { console.log(p[d]); return + p[d]; } ) )
-			.range( [height, 0] ) )
-	} ) );
+			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" } );
+
+	// make the different scales for each object in filter
+	var dimensions = [];
+
+	for ( var i = 0; i < filter.length; i++ ){
+		
+		var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.ordinal().rangePoints( [ 0, height ] ), type: "string" }
+		dimensions.push(dataDimension);
+	}
+
 	console.log(dimensions);
+	// extract list of dimensions and create a scale for each
+	// x.domain( dimensions = d3.keys( data[0] )
+	// 	.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
+	// 		&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
+	// 		&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" 
+	// 		&& ( y[d] = d3.scale.ordinal().rangePoints( [0, height] )
+	// 		.domain( d3.extent( data, function( p ) { return + p[d]; } ) )
+	// 		.range( [height, 0] ) )
+	// } ) );
+	var x = d3.scale.ordinal()
+		.domain( dimensions.map( function( d ) { return ( d.name ); } ) )
+		.rangePoints( [ 0, width ] );
+
+	// var line = d3.svg.line()
+	// 	.defined( function( d ){ return ! is NaN( d[1] ); } );
 	
 	// make path for lines
-	var path = function( d ) { return line( dimensions.map( function( p ) { return [x( p ), y[p]( d[p] )]; } ) ) };
+	// var path = function( d ) { line( dimensions.map( function( p ) { console.log(y[p](d[p])) ; return [x( p ), y[p]( d[p] )]; } ) ) };
 	// console.log(typeof(path));
+
+	
 	// add grey background lines for context
 	background = chart.append( "g" )
 			.attr( "class", "background" )
@@ -297,7 +307,7 @@ function drawParallelCoordinatesGraph( data ) {
 			.data( data )
 		.enter()
 		.append( "path" )
-		.attr( "d", path );
+		.attr( "d", draw );
 
 	// add blue foreground lines for focus
 	foreground = chart.append( "g" )
@@ -306,7 +316,7 @@ function drawParallelCoordinatesGraph( data ) {
 			.data( data )
 		.enter()
 		.append( "path" )
-		.attr( "d", path );
+		.attr( "d", draw );
 
   // add a group element for each dimension
   var g = chart.selectAll( ".dimension" )
@@ -320,7 +330,7 @@ function drawParallelCoordinatesGraph( data ) {
 	chart.selectAll( ".dimension" )
 		.append( "g" )
 			.attr( "class", "axis" )
-			.each( function( d ) {console.log(axis.scale(y[d])); d3.select( this ).call(axis.scale( y[d] )); } ) 
+			.each( function( d ) { d3.select( this ).call(axis.scale( y[d] )); } ) 
 		.append( "text" )
 			.style( "text-anchor", "middle" )
 			.attr( "y", -9 )
@@ -335,7 +345,12 @@ function drawParallelCoordinatesGraph( data ) {
 			.attr( "width", 16 );
 
 	// returns path for given data point
-	
+	function draw(d) {
+		return line(dimensions.map(function(dimension) {
+			return [x(dimension.name), dimension.scale(d[dimension.name])];
+		}));
+	}
+		
 
 	// handles a brush event, toggling the display of foreground lines
 	function brush() {

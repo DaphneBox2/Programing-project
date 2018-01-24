@@ -59,14 +59,6 @@ function dropdownMap( question ) {
 
 			chosenQuestion = "basicIncomeEffect";
 		}
-		else if ( document.getElementById( question ).id == "argumentsFor" ) {
-
-			chosenQuestion = "basicIncomeArgumentsFor";
-		}
-		else if ( document.getElementById( question ).id == "argumentsAgainst" ) {
-
-			chosenQuestion = "basicIncomeArgumentsAgainst";
-		}
 	}
 
 	colorMap( globalData, chosenQuestion, country );
@@ -137,8 +129,6 @@ gives the countries on the map a color according to corresponding data
 */
 
 function colorMap( globalData, chosenQuestion ) {
-	
-	console.log(1, globalData);
 
 	// var data = loadData();
 	// console.log(data);
@@ -168,27 +158,53 @@ function colorMap( globalData, chosenQuestion ) {
 		
 		// determine which options is chosen most often and determine color
 		var returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
-		var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
+		var choicesList = [];
 		var choices = [];
-		var colorCountries = ["#B71C1C", "#E57373", "#64B5F6", "#0D47A1", "#616161"];
 		var choiceMax = 0;
 		var choiceVar = "";
 		var choiceColor;
 		var mostChosenPercentage;
+		var colorCountries;
 
 		// put necessary data in choices
-		for ( var l = 0; l < ( returncalculateChoices.length - 1 ); l++ ) {
+		for ( var l = 0; l < ( returncalculateChoices.length - 10 ); l++ ) {
+ 
+			for ( var m = 9; m < ( returncalculateChoices.length - 1); m++ ) {
 
-			choices.push( returncalculateChoices[l] );
+				if ( returncalculateChoices[l] != "" && returncalculateChoices[m] > 0 ) {
+					
+					choicesList.push( returncalculateChoices[l] );
+					choices.push( returncalculateChoices[m] );
+				}
+			}
 		}
 
-		for ( var m = 0; m < choices.length; m++ ) {
+		// determine color
+		for ( var n = 0; n < choicesList.length; n++ ) {
 
-			if ( choiceMax < choices[m] ) {
+			if ( choicesList[n] == "I understand it fully" ) {
 
-				choiceMax = choices[m];
-				choiceVar = choicesList[m];
-				choiceColor = colorCountries[m];
+				colorCountries = ["#1A237E", "#303F9F", "#3F51B5", "#7986CB"];
+			}
+
+			else if ( choicesList[n] == "I would vote for it") {
+
+				colorCountries = ["#0D47A1", "#64B5F6", "#E57373", "#B71C1C", "#616161"];
+			}
+
+			else if ( choicesList[n] == "I would stop working" ) {
+
+				colorCountries = ["#EC407A", "#90CAF9", "#512DA8", "#C62828", "#004D40", "#FF9800", "#AFB42B", "#00E5FF", "#FFE082"];
+			}
+		}
+
+		for ( var o = 0; o < choices.length; o++ ) {
+
+			if ( choiceMax < choices[o] ) {
+
+				choiceMax = choices[o];
+				choiceVar = choicesList[o];
+				choiceColor = colorCountries[o];
 			}
 		}
 		
@@ -215,24 +231,24 @@ Code inspired from: https://bost.ocks.org/mike/bar/
 
 function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 
-	console.log(globalData);
-	console.log(chosenQuestion);
-	console.log(countryCode);
 	// make data complete for a country
 	var dataCountry = calculateChoice( globalData, chosenQuestion, countryCode );
-	var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
-
-	console.log(dataCountry);
 
 	// calculate percentages
 	var dataCountryPercentages = [];
 
-	for ( var i = 0; i < ( dataCountry.length - 1 ); i++ ) {
+	for ( var i = 0; i < ( dataCountry.length - 10 ); i++ ) {
+ 
+		for ( var j = 9; j < (dataCountry.length - 1); j++ ) {
 
-		var percentage = ( dataCountry[i] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
-		dataCountryPercentages.push( { "choice": choicesList[i], "percentage" : percentage } );
+			if ( dataCountry[i] != "" && dataCountry[j] > 0 ) {
+
+				var percentage = ( dataCountry[j] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
+				dataCountryPercentages.push( { "choice": dataCountry[i], "percentage" : percentage } );
+			}
+		}
 	}
-	
+
 	// state dimensions
 	var margin = { top: 30, right: 30, bottom: 100, left: 50 };
 	var width = 400 - margin.left - margin.right;
@@ -313,7 +329,6 @@ function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 
 function updateBarGraph(){
 	
-	console.log("hoi");
 	d3.selectAll( ".bar" )
 		.remove()
 
@@ -451,9 +466,47 @@ function calculates the total times a choice option is chosen by participants fr
 */
 function calculateChoice( globalData, chosenQuestion, countryCode ) {
 
-	console.log(globalData);
-	console.log(countryCode);
-	console.log(chosenQuestion);
+	// select answer possibilities for the selected question
+	if ( chosenQuestion == "basicIncomeAwareness" ) {
+
+			answer1 = "I understand it fully";
+			answer2 = "I know something about it";
+			answer3 = "I have heard just a little about it";
+			answer4 = "I have never heard of it";
+			answer5 = "";
+			answer6 = "";
+			answer7 = "";
+			answer8 = "";
+			answer9 = "";
+			otherAnswer = "";
+		}
+		else if ( chosenQuestion = "basicIncomeVote" ) {
+
+			answer1 = "I would vote for it";
+			answer2 = "I would probably vote for it";
+			answer3 = "I would probably vote against it";
+			answer4 = "I would vote against it";
+			answer5 = "I would not vote";
+			answer6 = "";
+			answer7 = "";
+			answer8 = "";
+			answer9 = "";
+			otherAnswer = "";
+		}
+		else if ( chosenQuestion = "basicIncomeEffect" ) {
+
+			answer1 = "I would stop working";
+			answer2 = "I would work less";
+			answer3 = "I would do more volunteering work";
+			answer4 = "I would spend more time with my family";
+			answer5 = "I would look for a different job";
+			answer6 = "I would work as a freelancer";
+			answer7 = "I would gain additional skills";
+			answer8 = "A basic income would not affect my work choices";
+			answer9 = "None of the above";
+			otherAnswer = "";
+		}
+
 	// declare variables necessary to count votes and participants
 	var totalParticipants = 0;
 	var choice1 = 0;
@@ -461,6 +514,10 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 	var choice3 = 0;
 	var choice4 = 0;
 	var choice5 = 0;
+	var choice6 = 0;
+	var choice7 = 0;
+	var choice8 = 0;
+	var choice9 = 0;
 	var other = 0;
 
 	// loop through dataset
@@ -468,29 +525,44 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 
 		// check if participant belongs to current check country
 		if ( countryCode == globalData[k].countryCode3 ) {
-			console.log("hoi");
 			
 			// count chosen options for participants per country
-			if ( globalData[k][chosenQuestion]== "I would vote for it" ) {
+			if ( globalData[k][chosenQuestion]== answer1 ) {
 				choice1 = choice1 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would probably vote for it" ) {
+			else if ( globalData[k][chosenQuestion] == answer2 ) {
 				choice2 = choice2 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would probably vote against it" ) {
+			else if ( globalData[k][chosenQuestion] == answer3 ) {
 				choice3 = choice3 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would vote against it" ) {
+			else if ( globalData[k][chosenQuestion] == answer4 ) {
 				choice4 = choice4 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would not vote" ) {
+			else if ( globalData[k][chosenQuestion] == answer5 ) {
 				choice5 = choice5 + 1;
 			}
+
+			else if ( globalData[k][chosenQuestion] == answer6 ) {
+				choice6 = choice6 + 1;
+			}
 			
+			else if ( globalData[k][chosenQuestion] == answer7 ) {
+				choice7 = choice7 + 1;
+			}
+
+			else if ( globalData[k][chosenQuestion] == answer8 ) {
+				choice8 = choice8 + 1;
+			}
+
+			else if ( globalData[k][chosenQuestion] == answer9 ) {
+				choice9 = choice9 + 1;
+			}
+
 			else {
 				other = other + 1;
 			}
@@ -498,7 +570,10 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 		}
 	}
 	
-	return [choice1, choice2, choice3, choice4, choice5, other, totalParticipants];
+	return [answer1, answer2, answer3, answer4, answer5, answer6, answer7, 
+	answer8, answer9, otherAnswer, choice1, choice2, choice3, choice4, choice5, choice6, 
+	choice7, choice8, choice9, other, totalParticipants];
+
 }
 
 /* 

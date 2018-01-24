@@ -3,25 +3,83 @@
 this javascript file is the main file for my programming project where all important functions are written to load data and figures are programmed
 */
 
+var globalData;
+var chosenQuestion = "basicIncomeVote";
+var countryCode = "DEU";
+
 // main function
 window.onload = function main() {
 	// load data
-	d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
+	// d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
 		
-		drawMap( data );
-		drawBarGraph( data );
-		drawParallelCoordinatesGraph( data );
-	})
+	// 	drawMap();
+	// 	drawBarGraph( data );
+	// 	drawParallelCoordinatesGraph( data );
+	// })
+
+	drawMap();
+	d3.queue()
+		.defer( d3.csv, "basicIncomeDoubleCountries.csv" )
+		.await( dataLoaded );
+	
+}
+
+// loadData
+function dataLoaded( error, loadedData ) {
+	if (error) throw error;
+
+	globalData = loadedData;
+	colorMap( globalData, chosenQuestion );
+	updateMap( globalData );
+	drawBarGraph( globalData, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph( globalData );
+	
 }
 
 // dropdownMap function
+function dropdownMap( question ) {
+
+	var chosenQuestion;
+
+	// shows question of choice by user and gives it to the data selection function
+	if (document.getElementById( question ) == null ) {
+
+		chosenQuestion = "basicIncomeVote";
+	}
+	else {
+		if ( document.getElementById( question ).id == "awareness" ) {
+
+			chosenQuestion = "basicIncomeAwareness";
+		}
+		else if ( document.getElementById( question ).id == "vote" ) {
+
+			chosenQuestion = "basicIncomeVote";
+		}
+		else if ( document.getElementById( question ).id == "effect" ) {
+
+			chosenQuestion = "basicIncomeEffect";
+		}
+		else if ( document.getElementById( question ).id == "argumentsFor" ) {
+
+			chosenQuestion = "basicIncomeArgumentsFor";
+		}
+		else if ( document.getElementById( question ).id == "argumentsAgainst" ) {
+
+			chosenQuestion = "basicIncomeArgumentsAgainst";
+		}
+	}
+
+	colorMap( globalData, chosenQuestion, country );
+}
 
 /* drawMap function
 code comes from: http://bl.ocks.org/milafrerichs/69035da4707ea51886eb
 json of Europe comes from: https://geojson-maps.ash.ms/
 */
-function drawMap( dataColors ) {
+function drawMap() {
+
 	( function() {
+		
 		var width = 700;
 		var height = 1000;
 		var center = [5, 70];
@@ -52,15 +110,24 @@ function drawMap( dataColors ) {
 					.data( topojson.feature( data, data.objects.customgeo3 ).features )
 				.enter()
 				.append( "path" )
+					.attr( "class", "country")
 					.attr( "id", function( d ) { return d.properties.sov_a3; } )
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
-					.attr( 'd', path );
+					.attr( "d", path )
+					.on( "mouseover", function( d ){ d3.select( this )
+							.style( "opacity", 0.5 ) 
+						d3.select( this ).append( "text" )
+						.attr("class", "countryName")
+						.text( d.properties.sovereignt ) } )
+					.on( "mouseout", function( d ){ d3.select( this )
+							.style( "opacity", 1 ) 
+						d3.select( ".countryName" )
+							.remove() } )
+					.on( "click", function(){ updateBarGraph() } );
 
-			colorMap( dataColors );
-		});
-
-		
+			// colorMap();
+		});	
 	}).call( this );
 }
 
@@ -69,23 +136,28 @@ colorMap function
 gives the countries on the map a color according to corresponding data
 */
 
-function colorMap( data ) {
+function colorMap( globalData, chosenQuestion ) {
 	
+	console.log(1, globalData);
+
+	// var data = loadData();
+	// console.log(data);
 	// declare necessary variables, choice variables are declared in order of description of codebook_basicIncome.pdf file
 	var countryList = [];
 
-	for ( var i = 1; i < data.length; i++ ) {
+	for ( var i = 1; i < globalData.length; i++ ) {
 
-		if ( i < ( data.length - 1 ) ) {
+		if ( i < ( globalData.length - 1 ) ) {
 
 			// determine how many countries are surveyed
-			if ( data[i - 1].countryCode3 != data[i].countryCode3 ) {
-				countryList.push( data[i - 1].countryCode3 );
+			if ( globalData[i - 1].countryCode3 != globalData[i].countryCode3 ) {
+				
+				countryList.push( globalData[i - 1].countryCode3 );
 			}
 		}
 		else {
 
-			countryList.push( data[i - 1].countryCode3 );
+			countryList.push( globalData[i - 1].countryCode3 );
 		}
 	}
 
@@ -95,7 +167,7 @@ function colorMap( data ) {
 		country = countryList[j];
 		
 		// determine which options is chosen most often and determine color
-		var returncalculateChoices = calculateChoice( data, country );
+		var returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
 		var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
 		var choices = [];
 		var colorCountries = ["#B71C1C", "#E57373", "#64B5F6", "#0D47A1", "#616161"];
@@ -132,28 +204,39 @@ function colorMap( data ) {
 
 // updateMap function
 
+function updateMap(){
+}
+
 /*
 drawBarGraph function
 this function draws for the first time the bar graph of the website after country click. 
 Code inspired from: https://bost.ocks.org/mike/bar/
 */
 
-function drawBarGraph( data ) {
+function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 
+	console.log(globalData);
+	console.log(chosenQuestion);
+	console.log(countryCode);
 	// make data complete for a country
-	var countryCode = "DEU";
-	var dataCountry = calculateChoice( data, countryCode );
-	var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
+	var dataCountry = calculateChoice( globalData, chosenQuestion, countryCode );
+
+	console.log(dataCountry);
 
 	// calculate percentages
 	var dataCountryPercentages = [];
 
-	for ( var i = 0; i < ( dataCountry.length - 1 ); i++ ) {
+	for ( var i = 0; i < ( dataCountry.length - 10 ); i++ ) {
+ 
+		for ( var j = 9; j < (dataCountry.length - 1); j++ ) {
 
-		var percentage = ( dataCountry[i] / dataCountry[dataCountry.length - 1] ) * 100;
-		dataCountryPercentages.push( { "choice": choicesList[i], "percentage" : percentage } );
+			if ( dataCountry[i] != "" && dataCountry[j] > 0 ) {
+				var percentage = ( dataCountry[j] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
+				dataCountryPercentages.push( { "choice": dataCountry[i], "percentage" : percentage } );
+			}
+		}
 	}
-	
+	console.log(dataCountryPercentages);
 	// state dimensions
 	var margin = { top: 30, right: 30, bottom: 100, left: 50 };
 	var width = 400 - margin.left - margin.right;
@@ -179,6 +262,7 @@ function drawBarGraph( data ) {
 			.data( dataCountryPercentages )
 		.enter()
 		.append( "g" )
+			.attr("class", "bar")
 			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice ) ) + ",0 )"; } );
 
 	bar.append( "rect" )
@@ -231,6 +315,15 @@ function drawBarGraph( data ) {
 
 // updateBarGraph function
 
+function updateBarGraph(){
+	
+	console.log("hoi");
+	d3.selectAll( ".bar" )
+		.remove()
+
+	d3.select( ".barChart" )
+}
+
 /*
  drawParallelCoordinatesGraph function
 code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostock/1341021
@@ -249,8 +342,6 @@ function drawParallelCoordinatesGraph( data ) {
 			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
 			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" } );
 
-	console.log(filter);
-
 	// make the different scales for each object in filter
 	var dimensions = [];
 
@@ -259,8 +350,6 @@ function drawParallelCoordinatesGraph( data ) {
 		var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.ordinal().rangePoints( [ 0, height ] ), type: "string" }
 		dimensions.push(dataDimension);
 	}
-
-	console.log(dimensions);
 
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
@@ -282,7 +371,6 @@ function drawParallelCoordinatesGraph( data ) {
 
 		dimension.scale.domain( data.map( function( d ) { return d[ dimension.name ]; } ).sort() );
 	} )
-	console.log(dimensions);
 	
 	// add grey background lines for context
 	background = chart.append( "g" )
@@ -334,7 +422,7 @@ function drawParallelCoordinatesGraph( data ) {
 		chart.classed( "active", true );
 		projection.classed( "inactive", function( p ) { return p.name; } );
 		// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
-		ordinalLabels.classed( "inactive", function( p ) { return pd; } );
+		ordinalLabels.classed( "inactive", function( p ) { return p; } );
 		// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
 	}
 
@@ -365,7 +453,48 @@ function drawParallelCoordinatesGraph( data ) {
 calculateChoice function
 function calculates the total times a choice option is chosen by participants from a certain country 
 */
-function calculateChoice( data, country ) {
+function calculateChoice( globalData, chosenQuestion, countryCode ) {
+
+	// select answer possibilities for the selected question
+	if ( chosenQuestion == "basicIncomeAwareness" ) {
+
+			answer1 = "I understand it fully";
+			answer2 = "I know something about it";
+			answer3 = "I have heard just a little about it";
+			answer4 = "I have never heard of it";
+			answer5 = "";
+			answer6 = "";
+			answer7 = "";
+			answer8 = "";
+			answer9 = "";
+			otherAnswer = "";
+		}
+		else if ( chosenQuestion = "basicIncomeVote" ) {
+
+			answer1 = "I would vote for it";
+			answer2 = "I would probably vote for it";
+			answer3 = "I would probably vote against it";
+			answer4 = "I would vote against it";
+			answer5 = "I would not vote";
+			answer6 = "";
+			answer7 = "";
+			answer8 = "";
+			answer9 = "";
+			otherAnswer = "";
+		}
+		else if ( chosenQuestion = "basicIncomeEffect" ) {
+
+			answer1 = "I would stop working";
+			answer2 = "I would work less";
+			answer3 = "I would do more volunteering work";
+			answer4 = "I would spend more time with my family";
+			answer5 = "I would look for a different job";
+			answer6 = "I would work as a freelancer";
+			answer7 = "I would gain additional skills";
+			answer8 = "A basic income would not affect my work choices";
+			answer9 = "None of the above";
+			otherAnswer = "";
+		}
 
 	// declare variables necessary to count votes and participants
 	var totalParticipants = 0;
@@ -374,35 +503,56 @@ function calculateChoice( data, country ) {
 	var choice3 = 0;
 	var choice4 = 0;
 	var choice5 = 0;
+	var choice6 = 0;
+	var choice7 = 0;
+	var choice8 = 0;
+	var choice9 = 0;
 	var other = 0;
 
 	// loop through dataset
-	for ( var k = 0; k < data.length; k++ ) {
+	for ( var k = 0; k < globalData.length; k++ ) {
 
 		// check if participant belongs to current check country
-		if ( country == data[k].countryCode3 ) {
+		if ( countryCode == globalData[k].countryCode3 ) {
+			console.log("hoi");
 			
 			// count chosen options for participants per country
-			if ( data[k].basicIncomeVote == "I would vote for it" ) {
+			if ( globalData[k][chosenQuestion]== answer1 ) {
 				choice1 = choice1 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would probably vote for it" ) {
+			else if ( globalData[k][chosenQuestion] == answer2 ) {
 				choice2 = choice2 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would probably vote against it" ) {
+			else if ( globalData[k][chosenQuestion] == answer3 ) {
 				choice3 = choice3 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would vote against it" ) {
+			else if ( globalData[k][chosenQuestion] == answer4 ) {
 				choice4 = choice4 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would not vote" ) {
+			else if ( globalData[k][chosenQuestion] == answer5 ) {
 				choice5 = choice5 + 1;
 			}
+
+			else if ( globalData[k][chosenQuestion] == answer6 ) {
+				choice6 = choice6 + 1;
+			}
 			
+			else if ( globalData[k][chosenQuestion] == answer7 ) {
+				choice7 = choice7 + 1;
+			}
+
+			else if ( globalData[k][chosenQuestion] == answer8 ) {
+				choice8 = choice8 + 1;
+			}
+
+			else if ( globalData[k][chosenQuestion] == answer9 ) {
+				choice9 = choice9 + 1;
+			}
+
 			else {
 				other = other + 1;
 			}
@@ -410,14 +560,37 @@ function calculateChoice( data, country ) {
 		}
 	}
 	
-	return [choice1, choice2, choice3, choice4, choice5, other, totalParticipants];
+	var answers = [answer1, answer2, answer3, answer4, answer5, answer6, answer7, answer8, answer9, otherAnswer];
+	var meaningAnswers = [];
+
+	for ( var i; i < answers.length; i++ ) {
+
+		if ( answers != "" ) {
+
+			meaningAnswers.push( answers[i] );
+		}
+	}
+
+	var choices = [choice1, choice2, choice3, choice4, choice5, choice6, choice7, choice8, choice9, other];
+	var meaningChoices = [];
+
+	for ( var j; j < choices.length; j++ ) {
+
+		if ( answers != 0 ) {
+
+			meaningChoices.push( choices[j] );
+		}
+	}
+
+	return [meaningAnswers, meaningChoices, totalParticipants];
+
 }
 
 /* 
 showInfo function
 code for tab funtionality so it reacts on clicking and code is derived from: https://www.w3schools.com/howto/howto_js_tabs.asp
 */
-function showInfo( evt,show ) {
+function showInfo( evt, show ) {
 	// declare all variables
 	var i;
 	var tabContent;

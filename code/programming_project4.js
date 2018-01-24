@@ -8,20 +8,67 @@ window.onload = function main() {
 	// load data
 	d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
 		
-		drawMap( data );
+		drawMap();
 		drawBarGraph( data );
 		drawParallelCoordinatesGraph( data );
 	})
 }
 
+// loadData
+function loadData() {
+
+		d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
+
+		console.log(data);
+		return data;
+	} )
+}
+
 // dropdownMap function
+function dropdownMap( question ) {
+
+	var chosenQuestion;
+
+	// shows question of choice by user and gives it to the data selection function
+	if (document.getElementById( question ) == null ) {
+
+		chosenQuestion = "basicIncomeVote";
+	}
+	else {
+		if ( document.getElementById( question ).id == "awareness" ) {
+
+			chosenQuestion = "basicIncomeAwareness";
+		}
+		else if ( document.getElementById( question ).id == "vote" ) {
+
+			chosenQuestion = "basicIncomeVote";
+		}
+		else if ( document.getElementById( question ).id == "effect" ) {
+
+			chosenQuestion = "basicIncomeEffect";
+		}
+		else if ( document.getElementById( question ).id == "argumentsFor" ) {
+
+			chosenQuestion = "basicIncomeArgumentsFor";
+		}
+		else if ( document.getElementById( question ).id == "argumentsAgainst" ) {
+
+			chosenQuestion = "basicIncomeArgumentsAgainst";
+		}
+	}
+	console.log(chosenQuestion);
+
+	return chosenQuestion;
+}
 
 /* drawMap function
 code comes from: http://bl.ocks.org/milafrerichs/69035da4707ea51886eb
 json of Europe comes from: https://geojson-maps.ash.ms/
 */
-function drawMap( dataColors ) {
+function drawMap() {
+
 	( function() {
+		
 		var width = 700;
 		var height = 1000;
 		var center = [5, 70];
@@ -52,15 +99,24 @@ function drawMap( dataColors ) {
 					.data( topojson.feature( data, data.objects.customgeo3 ).features )
 				.enter()
 				.append( "path" )
+					.attr( "class", "country")
 					.attr( "id", function( d ) { return d.properties.sov_a3; } )
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
-					.attr( 'd', path );
+					.attr( "d", path )
+					.on( "mouseover", function( d ){ d3.select( this )
+							.style( "opacity", 0.5 ) 
+						d3.select( this ).append( "text" )
+						.attr("class", "countryName")
+						.text( d.properties.sovereignt ) } )
+					.on( "mouseout", function( d ){ d3.select( this )
+							.style( "opacity", 1 ) 
+						d3.select( ".countryName" )
+							.remove() } )
+					.on( "click", function(){ updateBarGraph() } );
 
-			colorMap( dataColors );
-		});
-
-		
+			colorMap();
+		});	
 	}).call( this );
 }
 
@@ -69,8 +125,12 @@ colorMap function
 gives the countries on the map a color according to corresponding data
 */
 
-function colorMap( data ) {
+function colorMap() {
 	
+	console.log(2);
+
+	var data = loadData();
+	console.log(data);
 	// declare necessary variables, choice variables are declared in order of description of codebook_basicIncome.pdf file
 	var countryList = [];
 
@@ -132,6 +192,9 @@ function colorMap( data ) {
 
 // updateMap function
 
+function updateMap(){
+}
+
 /*
 drawBarGraph function
 this function draws for the first time the bar graph of the website after country click. 
@@ -179,6 +242,7 @@ function drawBarGraph( data ) {
 			.data( dataCountryPercentages )
 		.enter()
 		.append( "g" )
+			.attr("class", "bar")
 			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice ) ) + ",0 )"; } );
 
 	bar.append( "rect" )
@@ -231,6 +295,16 @@ function drawBarGraph( data ) {
 
 // updateBarGraph function
 
+function updateBarGraph(){
+	
+	console.log("hoi");
+	d3.selectAll( ".bar" )
+		.remove()
+
+	d3.select( ".barChart" )
+		.
+}
+
 /*
  drawParallelCoordinatesGraph function
 code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostock/1341021
@@ -244,7 +318,7 @@ function drawParallelCoordinatesGraph( data ) {
 	var height = 700 - margin.top - margin.bottom;
 
 	// declare other variables
-	var x = d3.scale.ordinal().rangePoints( [0, height] );
+	var x = d3.scale.ordinal().rangePoints( [0, width], 1 );
 	var y = {};
 	
 	var line = d3.svg.line();
@@ -262,14 +336,13 @@ function drawParallelCoordinatesGraph( data ) {
 
 	// extract list of dimensions and create a scale for each
 	x.domain( dimensions = d3.keys( data[0] )
-		.filter( function( d ) {console.log(d); return d != "countryCode2" && d != "countryCode3" && d != "age" 
+		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
 			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
 			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" 
 			&& ( y[d] = d3.scale.ordinal().rangePoints( [0, height] )
-			.domain( data.map( function( p ) { return p[d]; } ).sort() )
+			.domain( d3.extent( data, function( p ) { return + p[d]; } ) )
 			.range( [height, 0] ) )
 	} ) );
-	console.log(dimensions);
 	
 	// make path for lines
 	var path = function( d ) { return line( dimensions.map( function( p ) { return [x( p ), y[p]( d[p] )]; } ) ) };
@@ -347,6 +420,8 @@ function calculateChoice( data, country ) {
 	var choice4 = 0;
 	var choice5 = 0;
 	var other = 0;
+	var question = dropdownMap( question );
+	console.log(data[0][question]);
 
 	// loop through dataset
 	for ( var k = 0; k < data.length; k++ ) {
@@ -355,23 +430,23 @@ function calculateChoice( data, country ) {
 		if ( country == data[k].countryCode3 ) {
 			
 			// count chosen options for participants per country
-			if ( data[k].basicIncomeVote == "I would vote for it" ) {
+			if ( data[k][question]== "I would vote for it" ) {
 				choice1 = choice1 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would probably vote for it" ) {
+			else if ( data[k][question] == "I would probably vote for it" ) {
 				choice2 = choice2 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would probably vote against it" ) {
+			else if ( data[k][question] == "I would probably vote against it" ) {
 				choice3 = choice3 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would vote against it" ) {
+			else if ( data[k][question] == "I would vote against it" ) {
 				choice4 = choice4 + 1;
 			}
 			
-			else if ( data[k].basicIncomeVote == "I would not vote" ) {
+			else if ( data[k][question] == "I would not vote" ) {
 				choice5 = choice5 + 1;
 			}
 			
@@ -389,7 +464,7 @@ function calculateChoice( data, country ) {
 showInfo function
 code for tab funtionality so it reacts on clicking and code is derived from: https://www.w3schools.com/howto/howto_js_tabs.asp
 */
-function showInfo( evt,show ) {
+function showInfo( evt, show ) {
 	// declare all variables
 	var i;
 	var tabContent;

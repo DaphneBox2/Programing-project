@@ -12,7 +12,7 @@
     <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="programming_project.js"></script>
+    <script src="programming_project3.js"></script>
       <style>
         /* Set height of the grid so .sidenav can be 100% (adjust if needed) */
         .row.content {height: 1500px}
@@ -61,11 +61,11 @@
               <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose question
               <span class="caret"></span></button>
               <ul class="dropdown-menu">
-                <li><a href="#">Awareness</a></li>
-                <li><a href="#">Vote</a></li>
-                <li><a href="#">Effect</a></li>
-                <li><a href="#">Arguments for</a></li>
-                <li><a href="#">Arguments against</a></li>
+                <li><a href="#" class="choice" id="awareness" onclick="dropdownMap( 'awareness' ); colorMap()">Awareness</a></li>
+                <li><a href="#" class="choice" id="vote" onclick="dropdownMap( 'vote' )">Vote</a></li>
+                <li><a href="#" class="choice" id="effect" onclick="dropdownMap( 'effect' )">Effect</a></li>
+                <li><a href="#" class="choice" id="argumentsFor" onclick="dropdownMap( 'argumentsFor' )">Arguments for</a></li>
+                <li><a href="#" class="choice" id="argumentsAgainst" onclick="dropdownMap( 'argumentsAgainst' )">Arguments against</a></li>
               </ul>
             </div>
             <svg class="map"></svg>

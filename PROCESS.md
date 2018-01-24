@@ -40,3 +40,8 @@ Spend most of the day before presentations trying to fix all the errors for the 
 ## Monday 22nd of January 2018
 Tried to get the parallel coordinates working, unfortunately the axis still did not get any values however some lines were shown. Hopefully, I can get some help with this problem tomorrow.
 Furthermore, I spend some time making the graph interactive. On hover countries change color and correspond on a click but window with country name is not shown. Tomorrow, I will make the country label work and the function for question selection and it's influence on country color and hopefully get the parallel orientations working and the map and bar chart interactive together.
+
+## Tuesday 23rd of January 2018
+During the day, I tried to get my parallel coordinates working. However, due to a too long queue I could not get enough help with the graph so I made minimal progress. Furthermore, I made a dropdown and tried to get it working, but I got problems with my data structure. So, I will try to think about a new data structure tomorrow.
+
+## Wednesday 24th of January 2018

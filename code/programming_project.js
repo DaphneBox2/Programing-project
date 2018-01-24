@@ -6,22 +6,29 @@ this javascript file is the main file for my programming project where all impor
 // main function
 window.onload = function main() {
 	// load data
-	d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
+	// d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
 		
-		drawMap();
-		drawBarGraph( data );
-		drawParallelCoordinatesGraph( data );
-	})
+	// 	drawMap();
+	// 	drawBarGraph( data );
+	// 	drawParallelCoordinatesGraph( data );
+	// })
+
+	drawMap();
+	d3.queue()
+		.defer( d3.csv, "basicIncomeDoubleCountries.csv" )
+		.await( dataLoaded );
+	
 }
 
 // loadData
-function loadData() {
+function dataLoaded( error, data ) {
+	if (error) throw error;
 
-		d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
-
-		console.log(data);
-		return data;
-	} )
+	console.log(data);
+	colorMap( data );
+	updateMap( data );
+	drawBarGraph( data );
+	drawParallelCoordinatesGraph( data );
 }
 
 // dropdownMap function
@@ -115,7 +122,7 @@ function drawMap() {
 							.remove() } )
 					.on( "click", function(){ updateBarGraph() } );
 
-			colorMap();
+			// colorMap();
 		});	
 	}).call( this );
 }
@@ -125,12 +132,12 @@ colorMap function
 gives the countries on the map a color according to corresponding data
 */
 
-function colorMap() {
+function colorMap( data ) {
 	
-	console.log(2);
-
-	var data = loadData();
 	console.log(data);
+
+	// var data = loadData();
+	// console.log(data);
 	// declare necessary variables, choice variables are declared in order of description of codebook_basicIncome.pdf file
 	var countryList = [];
 
@@ -302,7 +309,6 @@ function updateBarGraph(){
 		.remove()
 
 	d3.select( ".barChart" )
-		.
 }
 
 /*
@@ -397,7 +403,7 @@ function drawParallelCoordinatesGraph( data ) {
 	chart.selectAll( ".dimension" )
 		.append( "g" )
 			.attr( "class", "axis" )
-			.each( function( d ) {console.log(axis.scale(y[d])); d3.select( this ).call(axis.scale( d.scale] )); } ) 
+			.each( function( d ) { console.log(axis.scale(y[d])); d3.select( this ).call(axis.scale( [d.scale] ) ) } )
 		.append( "text" )
 			.style( "text-anchor", "middle" )
 			.attr( "y", -9 )

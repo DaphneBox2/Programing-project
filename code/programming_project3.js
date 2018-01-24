@@ -238,17 +238,34 @@ code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostoc
 
 function drawParallelCoordinatesGraph( data ) {
 
-	// state dimentions
+	// declare size of graph and margins
 	var margin = { top: 100, right: 30, bottom: 30, left: 30 };
 	var width = 700 - margin.left - margin.right;
 	var height = 700 - margin.top - margin.bottom;
+	
+	 // make filter for all data that needs to be included in the graph
+	var filter = d3.keys( data[0] )
+		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
+			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
+			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" } );
+
+	console.log(filter);
+
+	// make the different scales for each object in filter
+	var dimensions = [];
+
+	for ( var i = 0; i < filter.length; i++ ){
+		
+		var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.ordinal().rangePoints( [ 0, height ] ), type: "string" }
+		dimensions.push(dataDimension);
+	}
+
+	console.log(dimensions);
 
 	// declare other variables
-	var x = d3.scale.ordinal().rangePoints( [0, height] );
-	var y = {};
-	
+	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
 	var line = d3.svg.line();
-	var axis = d3.svg.axis()
+	var yAxis = d3.svg.axis()
 		.orient( "left" );
 	
 	var background;
@@ -259,21 +276,14 @@ function drawParallelCoordinatesGraph( data ) {
 			.attr( "height", height + margin.top + margin.bottom )
 		.append( "g" )
 			.attr( "transform", "translate( " + margin.left + "," + margin.top + " )" );
+	
 
-	// extract list of dimensions and create a scale for each
-	x.domain( dimensions = d3.keys( data[0] )
-		.filter( function( d ) {console.log(d); return d != "countryCode2" && d != "countryCode3" && d != "age" 
-			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
-			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" 
-			&& ( y[d] = d3.scale.ordinal().rangePoints( [0, height] )
-			.domain( data.map( function( p ) { return p[d]; } ).sort() )
-			.range( [height, 0] ) )
-	} ) );
+	dimensions.forEach( function( dimension ) {
+
+		dimension.scale.domain( data.map( function( d ) { return d[ dimension.name ]; } ).sort() );
+	} )
 	console.log(dimensions);
 	
-	// make path for lines
-	var path = function( d ) { return line( dimensions.map( function( p ) { return [x( p ), y[p]( d[p] )]; } ) ) };
-	// console.log(typeof(path));
 	// add grey background lines for context
 	background = chart.append( "g" )
 			.attr( "class", "background" )
@@ -281,7 +291,7 @@ function drawParallelCoordinatesGraph( data ) {
 			.data( data )
 		.enter()
 		.append( "path" )
-		.attr( "d", path );
+		.attr( "d", draw );
 
 	// add blue foreground lines for focus
 	foreground = chart.append( "g" )
@@ -290,7 +300,7 @@ function drawParallelCoordinatesGraph( data ) {
 			.data( data )
 		.enter()
 		.append( "path" )
-		.attr( "d", path );
+		.attr( "d", draw );
 
   // add a group element for each dimension
   var g = chart.selectAll( ".dimension" )
@@ -298,37 +308,74 @@ function drawParallelCoordinatesGraph( data ) {
 	.enter()
 	.append( "g" )
 		.attr( "class", "dimension" )
-		.attr( "transform", function( d ) { return "translate( " + x(d) + " )"; } );
+		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } );
 
 	// add an axis and title
 	chart.selectAll( ".dimension" )
 		.append( "g" )
 			.attr( "class", "axis" )
-			.each( function( d ) {console.log(axis.scale(y[d])); d3.select( this ).call(axis.scale( y[d] )); } ) 
+			.each( function( d ) { d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
 		.append( "text" )
+			.attr( "class", "title" )
 			.style( "text-anchor", "middle" )
 			.attr( "y", -9 )
-			.text( function( d ) { return d; });
+			.text( function( d ) { return d.name; });
 
-	// add and store a brush for each axis
-	g.append( "g" )
-			.attr( "class", "brush" )
-			.each( function( d ) { d3.select( this ).call( y[d].brush = d3.svg.brush().y( y[d] ).on( "brush", brush ) ); } ) 
-		.selectAll( "rect" )
-			.attr( "x", -8 )
-			.attr( "width", 16 );
+	var ordinalLabels = chart.selectAll( ".axis text" )
+		.on( "mouseover", mouseover )
+		.on( "mouseout", mouseout );
+
+	var projection = chart.selectAll( ".background path, .foreground path" )
+		.on( "mouseover", mouseover )
+		.on( "mouseout", mouseout );
+
+	function mouseover( d ) {
+
+		chart.classed( "active", true );
+		projection.classed( "inactive", function( p ) { return p.name; } );
+		// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
+		ordinalLabels.classed( "inactive", function( p ) { return pd; } );
+		// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
+	}
+
+	function mouseout( d ) {
+
+		chart.classed( "active", false );
+		projection.classed( "inactive", false);
+		ordinalLabels.classed( "inactive", false);
+	}
+
+	function moveToFront() {
+
+		this.partentNode.appendChild( this );
+	}
+
+	// // add and store a brush for each axis
+	// g.append( "g" )
+	// 		.attr( "class", "brush" )
+	// 		.each( function( d ) { d3.select( this ).call( y[d].brush = d3.svg.brush().y( y[d] ).on( "brush", brush ) ); } ) 
+	// 	.selectAll( "rect" )
+	// 		.attr( "x", -8 )
+	// 		.attr( "width", 16 );
 
 	// returns path for given data point
+	function draw( d ) {
+
+		return line( dimensions.map( function ( dimension ) { 
+			return [x( dimension.name ), dimension.scale( d[dimension.name] )]; 
+		} ) )
+	}
+	// var path = function( d ) { return line( dimensions.map( function( p ) {console.log(y[p]); return [x( p ), y[p]( d[p] )]; } ) ) };
 	
 
-	// handles a brush event, toggling the display of foreground lines
-	function brush() {
+	// // handles a brush event, toggling the display of foreground lines
+	// function brush() {
 
-		var actives = dimensions.filter( function ( p ) { return !y[p].brush.empty(); } );
-		var extents = actives.map( function ( p ) { return y[p].brush.extent(); } );
+	// 	var actives = dimensions.filter( function ( p ) { return !y[p].brush.empty(); } );
+	// 	var extents = actives.map( function ( p ) { return y[p].brush.extent(); } );
 
-		foreground.style("display", function( d ) { return actives.every( function ( p, i ) { return extents[i][0] <= d[p] && d[p] <= extents[i][1]; } ) ? null : "none"; } )
-	}
+	// 	foreground.style("display", function( d ) { return actives.every( function ( p, i ) { return extents[i][0] <= d[p] && d[p] <= extents[i][1]; } ) ? null : "none"; } )
+	// }
 }
 
 // updateParallelCoordinatesGraph function

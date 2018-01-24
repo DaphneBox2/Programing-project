@@ -4,8 +4,6 @@ this javascript file is the main file for my programming project where all impor
 */
 
 var globalData;
-var chosenQuestion = "basicIncomeVote";
-var countryCode = "DEU";
 
 // main function
 window.onload = function main() {
@@ -29,9 +27,10 @@ function dataLoaded( error, loadedData ) {
 	if (error) throw error;
 
 	globalData = loadedData;
-	colorMap( globalData, chosenQuestion );
+	colorMap( globalData );
 	updateMap( globalData );
-	drawBarGraph( globalData, chosenQuestion, countryCode );
+	drawBarGraph( globalData );
+	console.log(globalData);
 	drawParallelCoordinatesGraph( globalData );
 	
 }
@@ -69,7 +68,7 @@ function dropdownMap( question ) {
 		}
 	}
 
-	colorMap( globalData, chosenQuestion, country );
+	return chosenQuestion;
 }
 
 /* drawMap function
@@ -136,28 +135,27 @@ colorMap function
 gives the countries on the map a color according to corresponding data
 */
 
-function colorMap( globalData, chosenQuestion ) {
+function colorMap( data ) {
 	
-	console.log(1, globalData);
+	console.log(1, data);
 
 	// var data = loadData();
 	// console.log(data);
 	// declare necessary variables, choice variables are declared in order of description of codebook_basicIncome.pdf file
 	var countryList = [];
 
-	for ( var i = 1; i < globalData.length; i++ ) {
+	for ( var i = 1; i < data.length; i++ ) {
 
-		if ( i < ( globalData.length - 1 ) ) {
+		if ( i < ( data.length - 1 ) ) {
 
 			// determine how many countries are surveyed
-			if ( globalData[i - 1].countryCode3 != globalData[i].countryCode3 ) {
-				
-				countryList.push( globalData[i - 1].countryCode3 );
+			if ( data[i - 1].countryCode3 != data[i].countryCode3 ) {
+				countryList.push( data[i - 1].countryCode3 );
 			}
 		}
 		else {
 
-			countryList.push( globalData[i - 1].countryCode3 );
+			countryList.push( data[i - 1].countryCode3 );
 		}
 	}
 
@@ -167,7 +165,7 @@ function colorMap( globalData, chosenQuestion ) {
 		country = countryList[j];
 		
 		// determine which options is chosen most often and determine color
-		var returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
+		var returncalculateChoices = calculateChoice( data, country );
 		var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
 		var choices = [];
 		var colorCountries = ["#B71C1C", "#E57373", "#64B5F6", "#0D47A1", "#616161"];
@@ -213,23 +211,19 @@ this function draws for the first time the bar graph of the website after countr
 Code inspired from: https://bost.ocks.org/mike/bar/
 */
 
-function drawBarGraph( globalData, chosenQuestion, countryCode ) {
+function drawBarGraph( data ) {
 
-	console.log(globalData);
-	console.log(chosenQuestion);
-	console.log(countryCode);
 	// make data complete for a country
-	var dataCountry = calculateChoice( globalData, chosenQuestion, countryCode );
+	var countryCode = "DEU";
+	var dataCountry = calculateChoice( data, countryCode );
 	var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
-
-	console.log(dataCountry);
 
 	// calculate percentages
 	var dataCountryPercentages = [];
 
 	for ( var i = 0; i < ( dataCountry.length - 1 ); i++ ) {
 
-		var percentage = ( dataCountry[i] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
+		var percentage = ( dataCountry[i] / dataCountry[dataCountry.length - 1] ) * 100;
 		dataCountryPercentages.push( { "choice": choicesList[i], "percentage" : percentage } );
 	}
 	
@@ -327,11 +321,24 @@ code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostoc
 
 function drawParallelCoordinatesGraph( data ) {
 
-	// declare size of graph and margins
+	// state dimentions
 	var margin = { top: 100, right: 30, bottom: 30, left: 30 };
 	var width = 700 - margin.left - margin.right;
 	var height = 700 - margin.top - margin.bottom;
 	
+	var line = d3.svg.line();
+	var axis = d3.svg.axis()
+		.orient( "left" );
+	
+	var background;
+	var foreground;
+
+	var chart = d3.select( ".parallelOrientations" )
+			.attr( "width", width + margin.left + margin.right )
+			.attr( "height", height + margin.top + margin.bottom )
+		.append( "g" )
+			.attr( "transform", "translate( " + margin.left + "," + margin.top + " )" );
+
 	 // make filter for all data that needs to be included in the graph
 	var filter = d3.keys( data[0] )
 		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
@@ -349,25 +356,26 @@ function drawParallelCoordinatesGraph( data ) {
 
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
-	var line = d3.svg.line();
-	var yAxis = d3.svg.axis()
-		.orient( "left" );
-	
-	var background;
-	var foreground;
-
-	var chart = d3.select( ".parallelOrientations" )
-			.attr( "width", width + margin.left + margin.right )
-			.attr( "height", height + margin.top + margin.bottom )
-		.append( "g" )
-			.attr( "transform", "translate( " + margin.left + "," + margin.top + " )" );
-	
+	var y = {};
 
 	dimensions.forEach( function( dimension ) {
 
 		dimension.scale.domain( data.map( function( d ) { return d[ dimension.name ]; } ).sort() );
 	} )
+
+	// // extract list of dimensions and create a scale for each
+	// x.domain( dimensions = d3.keys( data[0] )
+	// 	.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
+	// 		&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
+	// 		&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" 
+	// 		&& ( y[d] = d3.scale.ordinal().rangePoints( [0, height] )
+	// 		.domain( d3.extent( data, function( p ) { return + p[d]; } ) )
+	// 		.range( [height, 0] ) )
+	// } ) );
 	
+	// make path for lines
+	var path = function( d ) { return line( dimensions.map( function( p ) { return [x( p ), y[p]( d[p] )]; } ) ) };
+	// console.log(typeof(path));
 	// add grey background lines for context
 	background = chart.append( "g" )
 			.attr( "class", "background" )
@@ -375,7 +383,7 @@ function drawParallelCoordinatesGraph( data ) {
 			.data( data )
 		.enter()
 		.append( "path" )
-		.attr( "d", draw );
+		.attr( "d", path );
 
 	// add blue foreground lines for focus
 	foreground = chart.append( "g" )
@@ -384,7 +392,7 @@ function drawParallelCoordinatesGraph( data ) {
 			.data( data )
 		.enter()
 		.append( "path" )
-		.attr( "d", draw );
+		.attr( "d", path );
 
   // add a group element for each dimension
   var g = chart.selectAll( ".dimension" )
@@ -392,54 +400,36 @@ function drawParallelCoordinatesGraph( data ) {
 	.enter()
 	.append( "g" )
 		.attr( "class", "dimension" )
-		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } );
+		.attr( "transform", function( d ) { return "translate( " + x(d) + " )"; } );
 
 	// add an axis and title
 	chart.selectAll( ".dimension" )
 		.append( "g" )
 			.attr( "class", "axis" )
-			.each( function( d ) { d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
+			.each( function( d ) { d3.select( this ).call(axis.scale( [d.scale] ) ) } )
 		.append( "text" )
-			.attr( "class", "title" )
 			.style( "text-anchor", "middle" )
 			.attr( "y", -9 )
-			.text( function( d ) { return d.name; });
+			.text( function( d ) { return d; });
 
-	var ordinalLabels = chart.selectAll( ".axis text" )
-		.on( "mouseover", mouseover )
-		.on( "mouseout", mouseout );
-
-	var projection = chart.selectAll( ".background path, .foreground path" )
-		.on( "mouseover", mouseover )
-		.on( "mouseout", mouseout );
-
-	function mouseover( d ) {
-
-		chart.classed( "active", true );
-		projection.classed( "inactive", function( p ) { return p.name; } );
-		// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
-		ordinalLabels.classed( "inactive", function( p ) { return p; } );
-		// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
-	}
-
-	function mouseout( d ) {
-
-		chart.classed( "active", false );
-		projection.classed( "inactive", false);
-		ordinalLabels.classed( "inactive", false);
-	}
-
-	function moveToFront() {
-
-		this.partentNode.appendChild( this );
-	}
+	// add and store a brush for each axis
+	g.append( "g" )
+			.attr( "class", "brush" )
+			.each( function( d ) { d3.select( this ).call( y[d].brush = d3.svg.brush().y( y[d] ).on( "brush", brush ) ); } ) 
+		.selectAll( "rect" )
+			.attr( "x", -8 )
+			.attr( "width", 16 );
 
 	// returns path for given data point
-	function draw( d ) {
+	
 
-		return line( dimensions.map( function ( dimension ) { 
-			return [x( dimension.name ), dimension.scale( d[dimension.name] )]; 
-		} ) )
+	// handles a brush event, toggling the display of foreground lines
+	function brush() {
+
+		var actives = dimensions.filter( function ( p ) { return !y[p].brush.empty(); } );
+		var extents = actives.map( function ( p ) { return y[p].brush.extent(); } );
+
+		foreground.style("display", function( d ) { return actives.every( function ( p, i ) { return extents[i][0] <= d[p] && d[p] <= extents[i][1]; } ) ? null : "none"; } )
 	}
 }
 
@@ -449,11 +439,8 @@ function drawParallelCoordinatesGraph( data ) {
 calculateChoice function
 function calculates the total times a choice option is chosen by participants from a certain country 
 */
-function calculateChoice( globalData, chosenQuestion, countryCode ) {
+function calculateChoice( data, country ) {
 
-	console.log(globalData);
-	console.log(countryCode);
-	console.log(chosenQuestion);
 	// declare variables necessary to count votes and participants
 	var totalParticipants = 0;
 	var choice1 = 0;
@@ -462,32 +449,32 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 	var choice4 = 0;
 	var choice5 = 0;
 	var other = 0;
+	var question = dropdownMap( question );
 
 	// loop through dataset
-	for ( var k = 0; k < globalData.length; k++ ) {
+	for ( var k = 0; k < data.length; k++ ) {
 
 		// check if participant belongs to current check country
-		if ( countryCode == globalData[k].countryCode3 ) {
-			console.log("hoi");
+		if ( country == data[k].countryCode3 ) {
 			
 			// count chosen options for participants per country
-			if ( globalData[k][chosenQuestion]== "I would vote for it" ) {
+			if ( data[k][question]== "I would vote for it" ) {
 				choice1 = choice1 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would probably vote for it" ) {
+			else if ( data[k][question] == "I would probably vote for it" ) {
 				choice2 = choice2 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would probably vote against it" ) {
+			else if ( data[k][question] == "I would probably vote against it" ) {
 				choice3 = choice3 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would vote against it" ) {
+			else if ( data[k][question] == "I would vote against it" ) {
 				choice4 = choice4 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would not vote" ) {
+			else if ( data[k][question] == "I would not vote" ) {
 				choice5 = choice5 + 1;
 			}
 			
@@ -498,7 +485,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 		}
 	}
 	
-	return [choice1, choice2, choice3, choice4, choice5, other, totalParticipants];
+	choice1, choice2, choice3, choice4, choice5, other, totalParticipants;
 }
 
 /* 

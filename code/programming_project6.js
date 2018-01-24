@@ -4,8 +4,6 @@ this javascript file is the main file for my programming project where all impor
 */
 
 var globalData;
-var chosenQuestion = "basicIncomeVote";
-var countryCode = "DEU";
 
 // main function
 window.onload = function main() {
@@ -29,9 +27,10 @@ function dataLoaded( error, loadedData ) {
 	if (error) throw error;
 
 	globalData = loadedData;
-	colorMap( globalData, chosenQuestion );
+	colorMap( globalData );
 	updateMap( globalData );
-	drawBarGraph( globalData, chosenQuestion, countryCode );
+	drawBarGraph( globalData );
+	console.log(globalData);
 	drawParallelCoordinatesGraph( globalData );
 	
 }
@@ -69,7 +68,7 @@ function dropdownMap( question ) {
 		}
 	}
 
-	colorMap( globalData, chosenQuestion, country );
+	calculateChoice( chosenQuestion );
 }
 
 /* drawMap function
@@ -136,28 +135,27 @@ colorMap function
 gives the countries on the map a color according to corresponding data
 */
 
-function colorMap( globalData, chosenQuestion ) {
+function colorMap( data ) {
 	
-	console.log(1, globalData);
+	console.log(1, data);
 
 	// var data = loadData();
 	// console.log(data);
 	// declare necessary variables, choice variables are declared in order of description of codebook_basicIncome.pdf file
 	var countryList = [];
 
-	for ( var i = 1; i < globalData.length; i++ ) {
+	for ( var i = 1; i < data.length; i++ ) {
 
-		if ( i < ( globalData.length - 1 ) ) {
+		if ( i < ( data.length - 1 ) ) {
 
 			// determine how many countries are surveyed
-			if ( globalData[i - 1].countryCode3 != globalData[i].countryCode3 ) {
-				
-				countryList.push( globalData[i - 1].countryCode3 );
+			if ( data[i - 1].countryCode3 != data[i].countryCode3 ) {
+				countryList.push( data[i - 1].countryCode3 );
 			}
 		}
 		else {
 
-			countryList.push( globalData[i - 1].countryCode3 );
+			countryList.push( data[i - 1].countryCode3 );
 		}
 	}
 
@@ -167,7 +165,7 @@ function colorMap( globalData, chosenQuestion ) {
 		country = countryList[j];
 		
 		// determine which options is chosen most often and determine color
-		var returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
+		var returncalculateChoices = calculateChoice( data, country );
 		var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
 		var choices = [];
 		var colorCountries = ["#B71C1C", "#E57373", "#64B5F6", "#0D47A1", "#616161"];
@@ -213,23 +211,19 @@ this function draws for the first time the bar graph of the website after countr
 Code inspired from: https://bost.ocks.org/mike/bar/
 */
 
-function drawBarGraph( globalData, chosenQuestion, countryCode ) {
+function drawBarGraph( data ) {
 
-	console.log(globalData);
-	console.log(chosenQuestion);
-	console.log(countryCode);
 	// make data complete for a country
-	var dataCountry = calculateChoice( globalData, chosenQuestion, countryCode );
+	var countryCode = "DEU";
+	var dataCountry = calculateChoice( data, countryCode );
 	var choicesList = ["choice1", "choice2", "choice3", "choice4", "choice5", "other"];
-
-	console.log(dataCountry);
 
 	// calculate percentages
 	var dataCountryPercentages = [];
 
 	for ( var i = 0; i < ( dataCountry.length - 1 ); i++ ) {
 
-		var percentage = ( dataCountry[i] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
+		var percentage = ( dataCountry[i] / dataCountry[dataCountry.length - 1] ) * 100;
 		dataCountryPercentages.push( { "choice": choicesList[i], "percentage" : percentage } );
 	}
 	
@@ -338,6 +332,8 @@ function drawParallelCoordinatesGraph( data ) {
 			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
 			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" } );
 
+	console.log(filter);
+
 	// make the different scales for each object in filter
 	var dimensions = [];
 
@@ -346,6 +342,8 @@ function drawParallelCoordinatesGraph( data ) {
 		var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.ordinal().rangePoints( [ 0, height ] ), type: "string" }
 		dimensions.push(dataDimension);
 	}
+
+	console.log(dimensions);
 
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
@@ -367,6 +365,7 @@ function drawParallelCoordinatesGraph( data ) {
 
 		dimension.scale.domain( data.map( function( d ) { return d[ dimension.name ]; } ).sort() );
 	} )
+	console.log(dimensions);
 	
 	// add grey background lines for context
 	background = chart.append( "g" )
@@ -418,7 +417,7 @@ function drawParallelCoordinatesGraph( data ) {
 		chart.classed( "active", true );
 		projection.classed( "inactive", function( p ) { return p.name; } );
 		// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
-		ordinalLabels.classed( "inactive", function( p ) { return p; } );
+		ordinalLabels.classed( "inactive", function( p ) { return pd; } );
 		// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
 	}
 
@@ -449,11 +448,8 @@ function drawParallelCoordinatesGraph( data ) {
 calculateChoice function
 function calculates the total times a choice option is chosen by participants from a certain country 
 */
-function calculateChoice( globalData, chosenQuestion, countryCode ) {
+function calculateChoice( question ) {
 
-	console.log(globalData);
-	console.log(countryCode);
-	console.log(chosenQuestion);
 	// declare variables necessary to count votes and participants
 	var totalParticipants = 0;
 	var choice1 = 0;
@@ -462,32 +458,32 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 	var choice4 = 0;
 	var choice5 = 0;
 	var other = 0;
+	var question = dropdownMap( question );
 
 	// loop through dataset
-	for ( var k = 0; k < globalData.length; k++ ) {
+	for ( var k = 0; k < data.length; k++ ) {
 
 		// check if participant belongs to current check country
-		if ( countryCode == globalData[k].countryCode3 ) {
-			console.log("hoi");
+		if ( country == data[k].countryCode3 ) {
 			
 			// count chosen options for participants per country
-			if ( globalData[k][chosenQuestion]== "I would vote for it" ) {
+			if ( data[k][question]== "I would vote for it" ) {
 				choice1 = choice1 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would probably vote for it" ) {
+			else if ( data[k][question] == "I would probably vote for it" ) {
 				choice2 = choice2 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would probably vote against it" ) {
+			else if ( data[k][question] == "I would probably vote against it" ) {
 				choice3 = choice3 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would vote against it" ) {
+			else if ( data[k][question] == "I would vote against it" ) {
 				choice4 = choice4 + 1;
 			}
 			
-			else if ( globalData[k][chosenQuestion] == "I would not vote" ) {
+			else if ( data[k][question] == "I would not vote" ) {
 				choice5 = choice5 + 1;
 			}
 			
@@ -498,7 +494,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 		}
 	}
 	
-	return [choice1, choice2, choice3, choice4, choice5, other, totalParticipants];
+	choice1, choice2, choice3, choice4, choice5, other, totalParticipants;
 }
 
 /* 

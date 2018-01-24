@@ -302,7 +302,6 @@ function updateBarGraph(){
 		.remove()
 
 	d3.select( ".barChart" )
-		.
 }
 
 /*

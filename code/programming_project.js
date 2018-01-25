@@ -735,6 +735,8 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 function genderDropDown( gender ) {
 
 	var chosenGender;
+	var genderData = [];
+
 	// shows question of choice by user and gives it to the data selection function
 	if ( document.getElementById( gender ).id == "male" ) {
 
@@ -744,14 +746,30 @@ function genderDropDown( gender ) {
 
 		chosenGender = "female";
 	}
-	
 
+	for ( var i = 0; i < globalData.length; i++ ) {
+
+		if ( globalData[i].countryCode3 == countryCode && globalData[i].gender == chosenGender ) {
+
+			genderData.push( globalData[i] );
+		}
+	}
+
+	console.log(genderData);
+
+	d3.select( ".parallelOrientations" )
+		.selectAll( "g" )
+		.remove();
+
+	drawParallelCoordinatesGraph( genderData, chosenQuestion, countryCode );	
 }
 
 // genderDropDown
-function residencyDropDown( recidency ) {
+function residencyDropDown( residency ) {
 
 	var chosenResidency;
+	var residencyData = [];
+
 	// shows question of choice by user and gives it to the data selection function
 	if ( document.getElementById( residency ).id == "rural" ) {
 
@@ -761,8 +779,22 @@ function residencyDropDown( recidency ) {
 
 		chosenResidency = "urban";
 	}
-	
+		
+	for ( var i = 0; i < globalData.length; i++ ) {
 
+		if ( globalData[i].countryCode3 == countryCode && globalData[i].ruralUrban == chosenResidency ) {
+
+			residencyData.push( globalData[i] );
+		}
+	}	
+
+	console.log(residencyData);
+
+	d3.select( ".parallelOrientations" )
+		.selectAll( "g" )
+		.remove();
+
+	drawParallelCoordinatesGraph( residencyData, chosenQuestion, countryCode );
 }
 
 /* 

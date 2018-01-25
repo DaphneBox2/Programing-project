@@ -46,3 +46,6 @@ During the day, I tried to get my parallel coordinates working. However, due to 
 
 ## Wednesday 24th of January 2018
 Today, I received some help for the parallel coordinates graph and at the end the graph was working except the interactive elements. Furthermore, I was able to have the dropdown working to update the map with colors. As a last thing I decided to not include the questions reasons for and reasons against, because people could choose more answers on these questions which made the processing harder than the other questions. Tomorrow I hope to have the bar and parallel orientations graph to update after a click on a country in the map and hopefully to get the bar chart and parallel orientations graph interactive together as well. 
+
+## Thursday 25th of January 2018
+Tried to put the following interactivities at work, update barchart and parallel coordinates graph upon country and question selection, change parallel coordinates upon answer selection on barchart, make brush of parallel coordinates work, put drowdowns below the parallel coordinates graph and update barchart upon parallel coordinates selection. Except the last task, I managed to make progress on all of the tasks and they are working (with a few bugs).

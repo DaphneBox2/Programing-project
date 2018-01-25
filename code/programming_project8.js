@@ -32,7 +32,7 @@ function dataLoaded( error, loadedData ) {
 	colorMap( globalData, chosenQuestion );
 	updateMap( globalData );
 	drawBarGraph( globalData, chosenQuestion, countryCode );
-	drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph( globalData );
 	
 }
 
@@ -60,8 +60,6 @@ function dropdownMap( question ) {
 	}
 
 	colorMap( globalData, chosenQuestion, country );
-	updateBarGraph( globalData, chosenQuestion, country );
-	updateParallelCoordinatesGraph( globalData, chosenQuestion, country );
 	return chosenQuestion;
 }
 
@@ -110,13 +108,9 @@ function drawMap() {
 					.attr( "d", path )
 					.on( "mouseover", function( d ){ d3.select( this )
 							.style( "opacity", 0.5 ) 
-						d3.select( this )
-							.append( "div" )
-							.attr("class", "countryName")
-							.text( d.properties.sovereignt )
-							.html( function( d ) {
-								return ("<g><rect id = countryName></rect><p>" + d.properties.sovereignt + "</p></g>");
-							} ) } )
+						d3.select( this ).append( "text" )
+						.attr("class", "countryName")
+						.text( d.properties.sovereignt ) } )
 					.on( "mouseout", function( d ){ d3.select( this )
 							.style( "opacity", 1 ) 
 						d3.select( ".countryName" )
@@ -125,7 +119,6 @@ function drawMap() {
 
 						countryCode = d3.select( this ).attr( "id" );
 						updateBarGraph( globalData, chosenQuestion, countryCode ); 
-						updateParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
 					} );
 
 			// colorMap();
@@ -244,34 +237,20 @@ function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 	// make data complete for a country
 	var dataCountry = calculateChoice( globalData, chosenQuestion, countryCode );
 
-	// calculate percentages and choices
-	var choicesList = [];
-	var choicePercentages = [];
+	// calculate percentages
 	var dataCountryPercentages = [];
 
-	for ( var i = 0; i < ( dataCountry.length - 11 ); i++ ) {
+	for ( var i = 0; i < ( dataCountry.length - 10 ); i++ ) {
  
-		if ( dataCountry[i] != "" ) {
+		for ( var j = 9; j < (dataCountry.length - 1); j++ ) {
 
-			choicesList.push( dataCountry[i] );
+			if ( dataCountry[i] != "" && dataCountry[j] > 0 ) {
+
+				var percentage = ( dataCountry[j] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
+				dataCountryPercentages.push( { "choice": dataCountry[i], "percentage" : percentage } );
+			}
 		}
 	}
-	
-	for ( var j = 9; j < (dataCountry.length - 1); j++ ) {
-	
-		if ( dataCountry[j] > 0 ) {
-
-			var percentage = ( dataCountry[j] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
-			choicePercentages.push( percentage );
-		}
-	}
-	
-	for ( var k = 0; k < choicePercentages.length; k++ ) {
-
-		dataCountryPercentages.push( { "choice": choicesList[k], "percentage" : choicePercentages[k] } );
-	}
-
-	console.log(dataCountryPercentages);
 
 	// state dimensions
 	var margin = { top: 30, right: 30, bottom: 100, left: 50 };
@@ -301,34 +280,17 @@ function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 			.attr("class", "bar")
 			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice ) ) + ",0 )"; } );
 
-	bar.append( "text" )
-		.attr( "x", barWidth / 2 )
-		.attr( "y", function( d ) { return y( d.percentage ); } )
-		.attr( "dy", ".75em" )
-		.text( function( d ) { return d.choicesList; } )
-
 	bar.append( "rect" )
 		.attr( "y", function( d ) { return y( d.percentage ); } )
 		.attr( "height", function( d ) { return ( height - y( d.percentage ) ); } )
 		.attr( "width", ( barWidth - 5 ) ) 
-		.attr( "fill", "blue" )
-		.on( "mouseover", function( d ) { 
-			d3.select( this )
-				.style( "fill", "red" ) 
-			d3.selectAll( "text" )
-				.attr( "x", function() { return x( d.choice ) + ( ( barWidth / 2 ) + margin.left ) } )
-				.attr( "y", function() { return y( d.percentage ) } )
-				.text( function() { return d.choice } )
-				.style( "opacity", 1 ); } )
-		.on( "mouseout", function( d ) {
-			d3.select( this )
-				.style( "fill", "blue" ); 
-			d3.select( "text" )
-				.style( "opacity", 0 ); } )
-		.on( "click", function( d ){ 
-			var answer = d.choice;
-			barUpdatesParallel( globalData, chosenQuestion, countryCode, answer );
-		} );
+		.attr( "fill", "blue" );
+
+	bar.append( "text" )
+		.attr( "x", barWidth / 2 )
+		.attr( "y", function( d ) { return y( d.percentage ); } )
+		.attr( "dy", ".75em" )
+		.text( function( d ) { return d.choicesList; } );
 
 	// make axis
 	var xAxis = d3.svg.axis()
@@ -382,7 +344,7 @@ function updateBarGraph( globalData, chosenQuestion, countryCode ){
 code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostock/1341021
 */
 
-function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode ) {
+function drawParallelCoordinatesGraph( data ) {
 
 	// declare size of graph and margins
 	var margin = { top: 100, right: 30, bottom: 30, left: 30 };
@@ -390,25 +352,11 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 	var height = 700 - margin.top - margin.bottom;
 	
 	 // make filter for all data that needs to be included in the graph
-	var filter = d3.keys( globalData[0] )
+	var filter = d3.keys( data[0] )
 		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
-			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeVote" 
-			&& d != "basicIncomeEffect" && d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" 
-			&& d != "weight" } );
+			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeEffect" 
+			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" } );
 
-	filter.push( chosenQuestion );
-
-	// filter data for specific country
-	var filterData = [];
-
-	for ( var h = 0; h < globalData.length; h++ ) {
-
-		if ( countryCode == globalData[h].countryCode3 ){
-
-			filterData.push( globalData[h] );
-		}
-	}
-	
 	// make the different scales for each object in filter
 	var dimensions = [];
 
@@ -420,7 +368,6 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
-	var dragging = {};
 	var line = d3.svg.line();
 	var yAxis = d3.svg.axis()
 		.orient( "left" );
@@ -437,14 +384,14 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 
 	dimensions.forEach( function( dimension ) {
 
-		dimension.scale.domain( filterData.map( function( d ) { return d[ dimension.name ]; } ).sort() );
+		dimension.scale.domain( data.map( function( d ) { return d[ dimension.name ]; } ).sort() );
 	} )
 	
 	// add grey background lines for context
 	background = chart.append( "g" )
 			.attr( "class", "background" )
 		.selectAll( "path" )
-			.data( filterData )
+			.data( data )
 		.enter()
 		.append( "path" )
 		.attr( "d", draw );
@@ -453,7 +400,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 	foreground = chart.append( "g" )
 			.attr( "class", "foreground" )
 		.selectAll( "path" )
-			.data( filterData )
+			.data( data )
 		.enter()
 		.append( "path" )
 		.attr( "d", draw );
@@ -464,33 +411,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 	.enter()
 	.append( "g" )
 		.attr( "class", "dimension" )
-		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } )
-	.call( d3.behavior.drag()
-			.origin( function( d ) { return { x: x( d.name ) }; } )
-		.on( "dragstart", function( d ) { 
-			dragging[d.name] = x( d.name );
-			background.attr( "visibility", "hidden" );
-			} ) 
-		.on( "drag", function( d ) {
-				dragging[d.name] = Math.min( width, Math.max( 0, d3.event.x ) );
-				foreground.attr( "d", draw );
-				dimensions.sort( function( a, b ) { return position( a ) - position( b ); } );
-				x.domain( dimensions.map( function( d ) { return d.name; } ) );
-				g.attr( "transform", function( d ) { return "translate(" + position( d ) + ")"; } )
-		} )
-		.on( "dragend", function( d ) {
-			delete dragging[d.name];
-			transition( d3.select( this ) )
-				.attr( "transform", "translate(" + x( d.name ) + ")" );
-			transition( foreground ).attr( "d", draw );
-			background
-				.attr("d", draw )
-				.transition()
-					.delay( 500 )
-					.duration( 0 )
-					.attr( "visibility", null );
-		} )
-	)
+		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } );
 
 	// add an axis and title
 	chart.selectAll( ".dimension" )
@@ -503,117 +424,45 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 			.attr( "y", -9 )
 			.text( function( d ) { return d.name; });
 
-	// add and store a brush for each axis
-	chart.selectAll( ".dimension" )
-		.append( "g" )
-				.attr( "class", "brush" )
-			.each( function( d ) {
+	var ordinalLabels = chart.selectAll( ".axis text" )
+		.on( "mouseover", mouseover )
+		.on( "mouseout", mouseout );
 
-				d3.select( this ).call( d.scale.brush = d3.svg.brush().y( d.scale ).on( "brushstart", brushstart ).on( "brush", brush) );
-			})
-			.selectAll( "rect" )
-				.attr( "x", -8 )
-				.attr( "width", 16 );
+	var projection = chart.selectAll( ".background path, .foreground path" )
+		.on( "mouseover", mouseover )
+		.on( "mouseout", mouseout );
 
-	// var ordinalLabels = chart.selectAll( ".axis text" )
-	// 	.on( "mouseover", mouseover )
-	// 	.on( "mouseout", mouseout );
+	function mouseover( d ) {
 
-	// var projection = chart.selectAll( ".background path, .foreground path" )
-	// 	.on( "mouseover", mouseover )
-	// 	.on( "mouseout", mouseout );
+		chart.classed( "active", true );
+		projection.classed( "inactive", function( p ) { return p.name; } );
+		// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
+		ordinalLabels.classed( "inactive", function( p ) { return p; } );
+		// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
+	}
 
-	// function mouseover( d ) {
+	function mouseout( d ) {
 
-	// 	chart.classed( "active", true );
-	// 	projection.classed( "inactive", function( p ) { return p.name; } );
-	// 	// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
-	// 	ordinalLabels.classed( "inactive", function( p ) { return p; } );
-	// 	// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
-	// }
+		chart.classed( "active", false );
+		projection.classed( "inactive", false);
+		ordinalLabels.classed( "inactive", false);
+	}
 
-	// function mouseout( d ) {
+	function moveToFront() {
 
-	// 	chart.classed( "active", false );
-	// 	projection.classed( "inactive", false);
-	// 	ordinalLabels.classed( "inactive", false);
-	// }
-
-	// function moveToFront() {
-
-	// 	this.partentNode.appendChild( this );
-	// }
+		this.partentNode.appendChild( this );
+	}
 
 	// returns path for given data point
 	function draw( d ) {
 
 		return line( dimensions.map( function ( dimension ) { 
-			var v = dragging[dimension.name];
-			var tx = v == null ? x( dimension.name ) : v;
-			return [tx, dimension.scale( d[dimension.name] )]; 
+			return [x( dimension.name ), dimension.scale( d[dimension.name] )]; 
 		} ) )
-	}
-
-	function position( d ) {
-
-		var v = dragging[d.name];
-		return v == null ? x( d.name ) : v;
-	}
-
-	function transition( g ) {
-
-		return g.transition().duration( 500 );
-	}
-
-	function brushstart() { 
-
-		d3.event.sourceEvent.stopPropagation();
-	}
-
-	function brush() {
-
-		var actives = dimensions.filter( function( p ) { return !p.scale.brush.empty(); } );
-		var extents = actives.map( function( p ) { return p.scale.brush.extent(); } );
-
-		foreground.style( "display", function( d ) {
-			return actives.every( function( p, i ) { console.log(p.scale( d[p.name] ));
-				return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][0];
-			}) ? null : "none";
-		})
 	}
 }
 
 // updateParallelCoordinatesGraph function
-function updateParallelCoordinatesGraph( globalData, chosenQuestion, country ) {
-
-	d3.select( ".parallelOrientations" )
-		.selectAll( "g" )
-		.remove();
-
-	drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
-}
-
-// function barUpdatesParallel
-function barUpdatesParallel( globalData, chosenQuestion, countryCode, answer ) {
-
-	var answerData = [];
-
-	for ( var i = 0; i < globalData.length; i++ ) {
-
-		if ( globalData[i].countryCode3 == countryCode && globalData[i][chosenQuestion] == answer ) {
-
-			answerData.push( globalData[i] );
-		}
-	}
-	
-	// redraw lines
-	d3.select( ".parallelOrientations" )
-		.selectAll( "g" )
-			.remove();
-
-	drawParallelCoordinatesGraph( answerData, chosenQuestion, countryCode );
-
-}
 
 /* 
 calculateChoice function
@@ -731,45 +580,10 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 
 }
 
-// genderDropDown
-function genderDropDown( gender ) {
-
-	var chosenGender;
-	// shows question of choice by user and gives it to the data selection function
-	if ( document.getElementById( gender ).id == "male" ) {
-
-		chosenGender = "male";
-	}
-	else if ( document.getElementById( gender ).id == "female" ) {
-
-		chosenGender = "female";
-	}
-	
-
-}
-
-// genderDropDown
-function residencyDropDown( recidency ) {
-
-	var chosenResidency;
-	// shows question of choice by user and gives it to the data selection function
-	if ( document.getElementById( residency ).id == "rural" ) {
-
-		chosenResidency = "rural";
-	}
-	else if ( document.getElementById( residency ).id == "urban" ) {
-
-		chosenResidency = "urban";
-	}
-	
-
-}
-
 /* 
 showInfo function
 code for tab funtionality so it reacts on clicking and code is derived from: https://www.w3schools.com/howto/howto_js_tabs.asp
 */
-
 function showInfo( evt, show ) {
 	// declare all variables
 	var i;

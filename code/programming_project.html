@@ -60,7 +60,7 @@
             <h4>Map of Europe</h4>
             <div class="dropdown">
               <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose question
-              <span class="caret"></span></button>
+                <span class="caret"></span></button>
               <ul class="dropdown-menu">
                 <li><a href="#" class="choice" id="awareness" onclick="dropdownMap( 'awareness' )">Awareness</a></li>
                 <li><a href="#" class="choice" id="vote" onclick="dropdownMap( 'vote' )">Vote</a></li>
@@ -73,6 +73,19 @@
             <h5>Bar chart</h5>
             <svg class="barChart"></svg>
             <svg class="parallelOrientations"></svg>
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select gender
+                <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#" class="choice" id="awareness" onclick="genderDropDown( 'male' )">Male</a></li>
+                <li><a href="#" class="choice" id="vote" onclick="genderDropDown( 'female' )">Female</a></li>
+          </div>
+          <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select residency
+                <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#" class="choice" id="awareness" onclick="residencyDropDown( 'rural' )">Rural</a></li>
+                <li><a href="#" class="choice" id="vote" onclick="residencyDropDown( 'urban' )">Urban</a></li>
           </div>
         </div>
       </div>

@@ -420,7 +420,6 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
-	var dragging = {};
 	var line = d3.svg.line();
 	var yAxis = d3.svg.axis()
 		.orient( "left" );
@@ -464,33 +463,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 	.enter()
 	.append( "g" )
 		.attr( "class", "dimension" )
-		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } )
-	.call( d3.behavior.drag()
-			.origin( function( d ) { return { x: x( d.name ) }; } )
-		.on( "dragstart", function( d ) { 
-			dragging[d.name] = x( d.name );
-			background.attr( "visibility", "hidden" );
-			} ) 
-		.on( "drag", function( d ) {
-				dragging[d.name] = Math.min( width, Math.max( 0, d3.event.x ) );
-				foreground.attr( "d", draw );
-				dimensions.sort( function( a, b ) { return position( a ) - position( b ); } );
-				x.domain( dimensions.map( function( d ) { return d.name; } ) );
-				g.attr( "transform", function( d ) { return "translate(" + position( d ) + ")"; } )
-		} )
-		.on( "dragend", function( d ) {
-			delete dragging[d.name];
-			transition( d3.select( this ) )
-				.attr( "transform", "translate(" + x( d.name ) + ")" );
-			transition( foreground ).attr( "d", draw );
-			background
-				.attr("d", draw )
-				.transition()
-					.delay( 500 )
-					.duration( 0 )
-					.attr( "visibility", null );
-		} )
-	)
+		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } );
 
 	// add an axis and title
 	chart.selectAll( ".dimension" )
@@ -503,83 +476,41 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 			.attr( "y", -9 )
 			.text( function( d ) { return d.name; });
 
-	// add and store a brush for each axis
-	chart.selectAll( ".dimension" )
-		.append( "g" )
-				.attr( "class", "brush" )
-			.each( function( d ) {
+	var ordinalLabels = chart.selectAll( ".axis text" )
+		.on( "mouseover", mouseover )
+		.on( "mouseout", mouseout );
 
-				d3.select( this ).call( d.scale.brush = d3.svg.brush().y( d.scale ).on( "brushstart", brushstart ).on( "brush", brush) );
-			})
-			.selectAll( "rect" )
-				.attr( "x", -8 )
-				.attr( "width", 16 );
+	var projection = chart.selectAll( ".background path, .foreground path" )
+		.on( "mouseover", mouseover )
+		.on( "mouseout", mouseout );
 
-	// var ordinalLabels = chart.selectAll( ".axis text" )
-	// 	.on( "mouseover", mouseover )
-	// 	.on( "mouseout", mouseout );
+	function mouseover( d ) {
 
-	// var projection = chart.selectAll( ".background path, .foreground path" )
-	// 	.on( "mouseover", mouseover )
-	// 	.on( "mouseout", mouseout );
+		chart.classed( "active", true );
+		projection.classed( "inactive", function( p ) { return p.name; } );
+		// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
+		ordinalLabels.classed( "inactive", function( p ) { return p; } );
+		// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
+	}
 
-	// function mouseover( d ) {
+	function mouseout( d ) {
 
-	// 	chart.classed( "active", true );
-	// 	projection.classed( "inactive", function( p ) { return p.name; } );
-	// 	// projection.filter( function( p ) { return p.name; } ).each( moveToFront );
-	// 	ordinalLabels.classed( "inactive", function( p ) { return p; } );
-	// 	// ordinalLabels.filter( function( p ) { return p; } ).each( moveToFront);
-	// }
+		chart.classed( "active", false );
+		projection.classed( "inactive", false);
+		ordinalLabels.classed( "inactive", false);
+	}
 
-	// function mouseout( d ) {
+	function moveToFront() {
 
-	// 	chart.classed( "active", false );
-	// 	projection.classed( "inactive", false);
-	// 	ordinalLabels.classed( "inactive", false);
-	// }
-
-	// function moveToFront() {
-
-	// 	this.partentNode.appendChild( this );
-	// }
+		this.partentNode.appendChild( this );
+	}
 
 	// returns path for given data point
 	function draw( d ) {
 
 		return line( dimensions.map( function ( dimension ) { 
-			var v = dragging[dimension.name];
-			var tx = v == null ? x( dimension.name ) : v;
-			return [tx, dimension.scale( d[dimension.name] )]; 
+			return [x( dimension.name ), dimension.scale( d[dimension.name] )]; 
 		} ) )
-	}
-
-	function position( d ) {
-
-		var v = dragging[d.name];
-		return v == null ? x( d.name ) : v;
-	}
-
-	function transition( g ) {
-
-		return g.transition().duration( 500 );
-	}
-
-	function brushstart() { 
-
-		d3.event.sourceEvent.stopPropagation();
-	}
-
-	function brush() {
-
-		var actives = dimensions.filter( function( p ) { return !p.scale.brush.empty(); } );
-		var extents = actives.map( function( p ) { return p.scale.brush.extent(); } );
-
-		foreground.style( "display", function( d ) {
-			return actives.every( function( p, i ) { console.log(p.scale( d[p.name] ));
-				return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][0];
-			}) ? null : "none";
-		})
 	}
 }
 
@@ -731,45 +662,10 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 
 }
 
-// genderDropDown
-function genderDropDown( gender ) {
-
-	var chosenGender;
-	// shows question of choice by user and gives it to the data selection function
-	if ( document.getElementById( gender ).id == "male" ) {
-
-		chosenGender = "male";
-	}
-	else if ( document.getElementById( gender ).id == "female" ) {
-
-		chosenGender = "female";
-	}
-	
-
-}
-
-// genderDropDown
-function residencyDropDown( recidency ) {
-
-	var chosenResidency;
-	// shows question of choice by user and gives it to the data selection function
-	if ( document.getElementById( residency ).id == "rural" ) {
-
-		chosenResidency = "rural";
-	}
-	else if ( document.getElementById( residency ).id == "urban" ) {
-
-		chosenResidency = "urban";
-	}
-	
-
-}
-
 /* 
 showInfo function
 code for tab funtionality so it reacts on clicking and code is derived from: https://www.w3schools.com/howto/howto_js_tabs.asp
 */
-
 function showInfo( evt, show ) {
 	// declare all variables
 	var i;

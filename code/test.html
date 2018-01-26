@@ -181,37 +181,27 @@ function brush() {
       height = 500 - margin.top - margin.bottom;
       var dimensions = [
         {
-          name: "column1",
-          scale: d3.scale.linear().range([height, 0]),
-            type: "number"
+          name: "educationLevel",
+          scale: d3.scale.ordinal().range([height, 0]),
+            type: "string"
         },
         {
-          name: "column2",
+          name: "fullTime",
           scale: d3.scale.ordinal().rangePoints([0, height]),
           type: "string"
         },
         {
-          name: "column3",
-          scale: d3.scale.linear().range([height, 0]),
-            type: "number"
-        },
-        {
-          name: "column4",
+          name: "children",
           scale: d3.scale.ordinal().rangePoints([0, height]),
           type: "string"
         },
         {
-          name: "column5",
-          scale: d3.scale.linear().range([height, 0]),
-            type: "number"
+          name: "ageGroup",
+          scale: d3.scale.ordinal().range([height, 0]),
+            type: "string"
         },
         {
-          name: "column6",
-          scale: d3.scale.ordinal().rangePoints([0, height]),
-          type: "string"
-        },
-        {
-          name: "column7",
+          name: "basicIncomVote",
           scale: d3.scale.ordinal().rangePoints([0, height]),
           type: "string"
         }
@@ -228,7 +218,7 @@ function brush() {
           .attr("height", height + margin.top + margin.bottom)
         .append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-      d3.csv("data.csv", function(error, data) {
+      d3.csv("testdata.csv", function(error, data) {
         //Create the dimensions depending on attribute "type" (number|string)
         //The x-scale calculates the position by attribute dimensions[x].name
         dimensions.forEach(function(dimension) {
@@ -259,6 +249,7 @@ function brush() {
             .call(d3.behavior.drag()
                 .origin(function(d) { return {x: x(d.name)}; })
               .on("dragstart", function(d) {
+                console.log("hoi");
                 dragging[d.name] = x(d.name);
                 background.attr("visibility", "hidden");
               })
@@ -284,7 +275,7 @@ function brush() {
         // Add an axis and title.
         g.append("g")
             .attr("class", "axis")
-          .each(function(d) { d3.select(this).call(axis.scale(d.scale)); })
+          .each(function(d) {console.log(d3.select(this).call(axis.scale(d.scale))); d3.select(this).call(axis.scale(d.scale)); })
             .append("text")
               .style("text-anchor", "middle")
               .attr("class", "axis-label")
@@ -294,6 +285,7 @@ function brush() {
         g.append("g")
             .attr("class", "brush")
           .each(function(d) {
+            console.log(d3.svg.brush().y( d.scale ).on( "brushstart", brushstart ).on( "brush", brush) );
             d3.select(this).call(d.scale.brush = d3.svg.brush().y(d.scale).on("brushstart", brushstart).on("brush", brush));
           })
           .selectAll("rect")
@@ -324,7 +316,7 @@ function brush() {
         var actives = dimensions.filter(function(p) { return !p.scale.brush.empty(); }),
           extents = actives.map(function(p) { return p.scale.brush.extent(); });
         foreground.style("display", function(d) {
-          return actives.every(function(p, i) { console.log(p.scale(d[p.name]));
+          return actives.every(function(p, i) {
             if(p.type==="number"){
               return extents[i][0] <= parseFloat(d[p.name]) && parseFloat(d[p.name]) <= extents[i][1];
             }else{

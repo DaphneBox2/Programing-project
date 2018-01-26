@@ -1,1 +1,95 @@
-<a href="/programing-project/programming_project.html">project</a>
+<!doctype html>
+<!-- Daphne Box,
+ 10455701 -->
+
+<!-- Set up for bootstrap is used from: https://www.w3schools.com/bootstrap/tryit.asp?filename=trybs_temp_blog&stacked=h -->
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  	<script src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script src="//d3js.org/topojson.v1.min.js"></script>
+    <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+    <script src="code/programming_project.js"></script>
+      <style>
+        /* Set height of the grid so .sidenav can be 100% (adjust if needed) */
+        .row.content {height: 1500px}
+
+        /* On small screens, set height to 'auto' for sidenav and grid */
+        @media screen and (max-width: 767px) {
+          .sidenav {
+            height: auto;
+            padding: 15px;
+          }
+          .row.content {height: auto;} 
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="code/programming_project.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  </head>
+  <body>
+    <h>Opinions about basic income</h>
+    <br>
+    <p1 face = "arial" font-size = "12">
+    Daphne Box, data-set comes from a study from Dalia and is found at 
+    <a href = "https://www.kaggle.com/datasets">Kaggle</a>.
+    </p1>
+    
+    <!-- code for tab functionality is derived from: https://www.w3schools.com/howto/howto_js_tabs.asp -->
+    <!-- tab links -->
+    <div class="tab">
+      <button class="tabLinks" onclick="showInfo(event,'info')">Info</button>
+      <button class="tabLinks" onclick="showInfo(event,'data')">Data</button>
+    </div>
+
+    <!-- tab content -->
+    <div id="info" class="tabContent">
+      <h3>Basic income, what is it?</h3>
+      <p>!!!???!!!</p>
+    </div>
+
+    <div id="data" class="tabContent">
+      <h3>Data</h3>
+      <br><br><br><br><br>
+      <div class="container-fluid">
+        <div class="row content">
+          <div class="col-sm-6 map">
+            <h4>Map of Europe</h4>
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose question
+                <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#" class="choice" id="awareness" onclick="dropdownMap( 'awareness' )">Awareness</a></li>
+                <li><a href="#" class="choice" id="vote" onclick="dropdownMap( 'vote' )">Vote</a></li>
+                <li><a href="#" class="choice" id="effect" onclick="dropdownMap( 'effect' )">Effect</a></li>
+              </ul>
+            </div>
+            <svg class="map"></svg>
+          </div>
+          <div class="col-sm-6 charts">
+            <h5>Bar chart</h5>
+            <svg class="barChart"></svg>
+            <svg class="parallelOrientations"></svg>
+            <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select gender
+                <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#" class="choice" id="male" onclick="genderDropDown( 'male' )">Male</a></li>
+                <li><a href="#" class="choice" id="female" onclick="genderDropDown( 'female' )">Female</a></li>
+          </div>
+          <div class="dropdown">
+              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select residency
+                <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                <li><a href="#" class="choice" id="rural" onclick="residencyDropDown( 'rural' )">Rural</a></li>
+                <li><a href="#" class="choice" id="urban" onclick="residencyDropDown( 'urban' )">Urban</a></li>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

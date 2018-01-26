@@ -99,6 +99,10 @@ function drawMap() {
 
 			var europeMap = topojson.feature( data, data.objects.customgeo3 );
 
+			var tip = d3.tip()
+				.attr( "class", "tip" )
+				.html( function( d ) { return "<span>" + d.properties.sovereignt + "</span>"; } )
+
 			svg.selectAll( ".europeMap" )
 					.data( topojson.feature( data, data.objects.customgeo3 ).features )
 				.enter()
@@ -108,19 +112,23 @@ function drawMap() {
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
 					.attr( "d", path )
-					.on( "mouseover", function( d ){ d3.select( this )
-							.style( "opacity", 0.5 ) 
+					.on( "mouseover", function( d ){ 
 						d3.select( this )
-							.append( "div" )
-							.attr("class", "countryName")
-							.text( d.properties.sovereignt )
-							.html( function( d ) {
-								return ("<g><rect id = countryName></rect><p>" + d.properties.sovereignt + "</p></g>");
-							} ) } )
-					.on( "mouseout", function( d ){ d3.select( this )
+							.style( "opacity", 0.5 ) 
+						// d3.select( this )
+						// 	.append( "div" )
+						// 	.attr("class", "countryName")
+						// 	.text( d.properties.sovereignt )
+						// 	.html( function( d ) {
+						// 		return ("<g><rect id = countryName></rect><p>" + d.properties.sovereignt + "</p></g>");
+						// 	} ) 
+						} )
+					.on( "mouseout", function( d ){ 
+						d3.select( this )
 							.style( "opacity", 1 ) 
-						d3.select( ".countryName" )
-							.remove() } )
+						// d3.select( ".countryName" )
+						// 	.remove() 
+						} )
 					.on( "click", function(){ 
 
 						countryCode = d3.select( this ).attr( "id" );

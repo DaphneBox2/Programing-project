@@ -49,3 +49,6 @@ Today, I received some help for the parallel coordinates graph and at the end th
 
 ## Thursday 25th of January 2018
 Tried to put the following interactivities at work, update barchart and parallel coordinates graph upon country and question selection, change parallel coordinates upon answer selection on barchart, make brush of parallel coordinates work, put drowdowns below the parallel coordinates graph and update barchart upon parallel coordinates selection. Except the last task, I managed to make progress on all of the tasks and they are working (with a few bugs).
+
+## Friday 26th of January 2018
+Spend most of the day trying to fix the brush. Unfortunately, it did not improve enough, brush is only working for the top answer possibilities. During the feedback session I also received feedback on the project that more explanation around my graphs is necessary and that the axis of the parallel coordinate graph should be more clear next to the fact that it should be visible for users to see how many correspondents were belonging to a certain group.

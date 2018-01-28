@@ -27,6 +27,12 @@ p1{
 	display: none;
 }
 
+.xAxis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
 .background path {
   fill: none;
   stroke: #ddd;

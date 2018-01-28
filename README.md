@@ -10,7 +10,7 @@ Due to the increased interest, it is worthwhile to investigate the brought opini
 Because at present there are no visualizations available about the public opinion of basic income, it is hard to really pinpoint the actual opinion about the basic income and its division over the population per European country. The main target audience of this project will be people with interest in the basic income. 
 
 ## Solution of the problem
-The solution to this problem is to create a website that shows a map of Europe where the countries are colored according to a specific opinion about an aspect of the basic income and when clicked on the country the division of that opinion over the population is shown in total and all respondents and demographics of respondents of the interviewed people is shown in a parallel orientations graph, the parallel orientations graph and bar graph will interact on click/selection basis.
+The solution to this problem is to create a website that shows a map of Europe where the countries are colored according to a specific opinion about an aspect of the basic income and when clicked on the country the division of that opinion over the population is shown in total and all respondents and demographics of respondents of the interviewed people is shown in a parallel orientations graph, the parallel orientations graph and bar graph will interact on click/selection basis (only when enough time is left).
 
 ## Datasets
 The dataset that is used to build this website comes from kaggle.com.

@@ -169,6 +169,15 @@ function colorMap( globalData, chosenQuestion ) {
 		}
 	}
 
+	// declare variables
+	var choicesList;
+	var choices;
+	var choiceMax;
+	var choiceVar;
+	var choiceColor;
+	var mostChosenPercentage;
+	var colorCountries;
+
 	// loop through the list of all surveyed countries
 	for ( var j = 0; j < countryList.length; j++ ) {
 
@@ -176,27 +185,26 @@ function colorMap( globalData, chosenQuestion ) {
 		
 		// determine which options is chosen most often and determine color
 		var returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
-		var choicesList = [];
-		var choices = [];
-		var choiceMax = 0;
-		var choiceVar = "";
-		var choiceColor;
-		var mostChosenPercentage;
-		var colorCountries;
+		choicesList = [];
+		choices = [];
+		choiceMax = 0;
+		choiceVar = "";
 
+console.log(returncalculateChoices);
 		// put necessary data in choices
-		for ( var l = 0; l < ( returncalculateChoices.length - 10 ); l++ ) {
+		for ( var l = 0; l < ( returncalculateChoices.length - 11 ); l++ ) {
  
-			for ( var m = 9; m < ( returncalculateChoices.length - 1); m++ ) {
-
-				if ( returncalculateChoices[l] != "" && returncalculateChoices[m] > 0 ) {
-					
+			
+			console.log(returncalculateChoices[l+9]);
+				if ( returncalculateChoices[l] != "" && returncalculateChoices[l + 10] > 0 ) {
+			
 					choicesList.push( returncalculateChoices[l] );
-					choices.push( returncalculateChoices[m] );
+					choices.push( returncalculateChoices[l + 10] );
 				}
-			}
-		}
 
+		}
+		console.log(choices);
+		console.log(choicesList);
 		// determine color
 		for ( var n = 0; n < choicesList.length; n++ ) {
 
@@ -233,7 +241,50 @@ function colorMap( globalData, chosenQuestion ) {
 
 		d3.selectAll( currentCountry )
 			.attr( "fill", choiceColor );
-	}
+	} 
+
+	// make legenda
+	var legend = d3.select( ".map" )
+		.select( "svg" )
+		.append( "g" )
+		.attr("class", "legenda")
+		.append("rect")
+	        .attr("id", "canvas")
+	        .attr("x", 580)
+	        .attr("y", 150)
+	        .attr("class", "st0")
+	        .attr("width", "250")
+	        .attr("height", "150")
+	        .style("opacity", "0.1");
+
+    // make rectangles with colors for legenda
+    for ( var p = 0; p < ( colorCountries.length ); p++ ) {
+    	
+    	d3.select( ".legenda")
+    		.select( "#canvas" )
+        	.append( "rect" )
+	            .attr( "x", 580 )
+	            .attr( "y", ( 23.4 * ( p ) + 150 ) )
+	            .attr( "class", "st1" )
+	            .attr( "width", "10" )
+	            .attr( "height", "15" )
+	            .style( "fill", colorCountries[p] );
+    }
+   
+
+    // make text element to describe input legenda and data
+    for ( var q = 0; q < ( choicesList.length ); q++ ) {
+    	
+    	d3.select(".legenda")
+    		.select( "#canvas" )
+	        	.append( "text" )
+	            .attr( "x", 580 )
+	            .attr( "y", ( 23.4 * ( q ) + 410 ) )
+	            .attr( "class", "st2" )
+	            .attr( "width", "60" )
+	            .attr( "height", "15" )
+	            .text( choicesList[q] );
+    }   
 }
 
 // updateMap function
@@ -279,12 +330,10 @@ function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 		dataCountryPercentages.push( { "choice": choicesList[k], "percentage" : choicePercentages[k] } );
 	}
 
-	console.log(dataCountryPercentages);
-
 	// state dimensions
-	var margin = { top: 30, right: 30, bottom: 100, left: 50 };
-	var width = 400 - margin.left - margin.right;
-	var height = 500 - margin.top - margin.bottom;
+	var margin = { top: 10, right: 30, bottom: 200, left: 50 };
+	var width = 500 - margin.left - margin.right;
+	var height = 600 - margin.top - margin.bottom;
 
 	var y = d3.scale.linear()
 		.range( [height, 0] );
@@ -304,7 +353,7 @@ function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 
 	var tip = d3.tip()
 		.attr( "class", "tip" )
-		.html( function( d ) { return "<span>" + Math.round( d.percentage ) + "</span>"; } )
+		.html( function( d ) { return "<span>" + ( Math.round( d.percentage * 10 ) / 10 ) + "%" + "</span>"; } )
 
 	var bar = chart.selectAll( "g" )
 			.data( dataCountryPercentages )
@@ -354,18 +403,23 @@ function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 		.scale( x )
 		.orient( "bottom" );
 
-	chart.append( "g" )
-		.attr( "class", "x axis" )
+	var xLabels = chart.append( "g" )
+		.attr( "class", "xAxis" )
 		.attr( "transform", "translate(" + margin.left + "," + height + " )" )
 		.call( xAxis );	
 	
-	chart.append( "text" )
+	var xName = chart.append( "text" )
 		.attr( "class", "label" )
-		.attr( "x", width )
-		.attr( "y", height + 30 )
-		.attr("transform", "translate(" + (width / 2) + ", 20)")
+		.attr( "x", width + 50 )
+		.attr( "y", height + 40 )
+		// .attr("transform", "translate(" + (width / 2) + ", 20)")
 		.style( "text-anchor", "end" )
 		.text( "choice" );
+
+	var rotateXLabels = d3.select( ".xAxis" )
+		.selectAll( "text" )
+		.attr( "transform", "rotate( -45 )" )
+		.style( "text-anchor", "end" );
 
 	var yAxis = d3.svg.axis()
 		.scale( y )
@@ -404,7 +458,7 @@ code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostoc
 function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode ) {
 
 	// declare size of graph and margins
-	var margin = { top: 100, right: 30, bottom: 30, left: 30 };
+	var margin = { top: 100, right: 200, bottom: 30, left: 50 };
 	var width = 700 - margin.left - margin.right;
 	var height = 700 - margin.top - margin.bottom;
 	
@@ -516,12 +570,19 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 	chart.selectAll( ".dimension" )
 		.append( "g" )
 			.attr( "class", "axis" )
+			.attr( "id", function( d ) { return d.name; } )
 			.each( function( d ) {console.log(d3.select(this).call(yAxis.scale(d.scale))); d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
 		.append( "text" )
 			.attr( "class", "title" )
 			.style( "text-anchor", "middle" )
 			.attr( "y", -9 )
 			.text( function( d ) { return d.name; });
+
+	// set text to right side of most right axis
+	d3.select( "#basicIncomeVote" )
+		.selectAll( "text" )
+		.style( "text-anchor", "start" )
+		.attr( "transform", "translate( 10, 0 )" );
 
 	// add and store a brush for each axis
 	chart.selectAll( ".dimension" )

@@ -52,3 +52,6 @@ Tried to put the following interactivities at work, update barchart and parallel
 
 ## Friday 26th of January 2018
 Spend most of the day trying to fix the brush. Unfortunately, it did not improve enough, brush is only working for the top answer possibilities. During the feedback session I also received feedback on the project that more explanation around my graphs is necessary and that the axis of the parallel coordinate graph should be more clear next to the fact that it should be visible for users to see how many correspondents were belonging to a certain group.
+
+## Monday 29th of January 2018
+Today, I finally fixed the brush of the parallel coordinates graph and I fixed the tooltip on the map. Furthermore, I received some tutoring to make up a plan for this week so I can get to a realistic end product. For this, I still have to make a legend for my map, put some clarifications on my website so the user knows how it works, and fix the axis of the parallel coordinates graph. And if enough time is left I will add two axis to the parallel coordinates graph and change the two lower drop down menu to a radio button on top so the user can sort the bar graph on question or on percentage. 

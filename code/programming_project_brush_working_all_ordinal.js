@@ -87,14 +87,9 @@ function drawMap() {
 			.projection( projection );
 		var column = d3.select( ".map" );
 				
-		var svg = column.select( "svg" )
-			.attr( "id", "draw" )		
+		var svg = column.select( "svg" )		
 			.attr( "height", height )
 			.attr( "width", width );
-
-		var tooltip = d3.select( "body" )
-			.append( "div" )
-			.attr( "class", "tooltip hidden" );
 		
 		d3.json("scripts/custom-geo-3_topojson.json", function( error, data ) {
 
@@ -104,22 +99,22 @@ function drawMap() {
 
 			var europeMap = topojson.feature( data, data.objects.customgeo3 );
 
+			var tip = d3.tip()
+				.attr( "class", "tip" )
+				.html( function( d ) { return "<span>" + d.properties.sovereignt + "</span>"; } )
+
 			svg.selectAll( ".europeMap" )
 					.data( topojson.feature( data, data.objects.customgeo3 ).features )
 				.enter()
 				.append( "path" )
 					.attr( "class", "country")
 					.attr( "id", function( d ) { return d.properties.sov_a3; } )
-					.attr( "name", function( d ) { return d.properties.sovereignt } )
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
 					.attr( "d", path )
 					.on( "mouseover", function( d ){ 
 						d3.select( this )
-							.style( "opacity", 0.5 );
-						var mouseX = d3.event.pageX;
-						var mouseY = d3.event.pageY;
-						showToolTip( d, mouseX, mouseY );  
+							.style( "opacity", 0.5 ) 
 						// d3.select( this )
 						// 	.append( "div" )
 						// 	.attr("class", "countryName")
@@ -130,8 +125,7 @@ function drawMap() {
 						} )
 					.on( "mouseout", function( d ){ 
 						d3.select( this )
-							.style( "opacity", 1 );
-						tooltip.classed( "hidden", true );
+							.style( "opacity", 1 ) 
 						// d3.select( ".countryName" )
 						// 	.remove() 
 						} )
@@ -142,34 +136,7 @@ function drawMap() {
 						updateParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
 					} );
 
-			function showToolTip( d, mouseX, mouseY ) {
-				
-				var label = d.properties.sovereignt;
-
-				// determine most chosen answer for a country
-				var currentCountryCode = d.properties.sov_a3;
-				var questions = ["basicIncomeAwareness", "basicIncomeVote", "basicIncomeEffect"];
-				var awareness = calculateChoice( globalData, questions[0], currentCountryCode );
-				var vote = calculateChoice( globalData, questions[1], currentCountryCode );
-				var effect = calculateChoice( globalData, questions[2], currentCountryCode );
-				var show;
-
-				if ( awareness[3] > 0 ) {
-
-					show = ( label + "<br>"
-							+ "Awareness: " + awareness[4] + "is chosen most with " + awareness[3] + " % <br>"
-							+ "Vote: " + vote[4] + "is chosen most with" + vote[3] + " % <br>"
-							+ "Effect: " + effect[4] + "is chosen most with" + effect[3] + " % <br>" ); 
-				}
-				else {
-
-					show = ( label + "<br>" + "Unfortunately, there is no data for this country" );
-				}
-			
-				tooltip.classed( "hidden", false )
-					.attr( "style", "left:" + ( mouseX ) + "px; top:" + ( mouseY ) + "px" )
-					.html( show );
-			}
+			// colorMap();
 		});	
 	}).call( this );
 }
@@ -202,7 +169,14 @@ function colorMap( globalData, chosenQuestion ) {
 		}
 	}
 
-	var returncalculateChoices;
+	// declare variables
+	var choicesList;
+	var choices;
+	var choiceMax;
+	var choiceVar;
+	var choiceColor;
+	var mostChosenPercentage;
+	var colorCountries;
 
 	// loop through the list of all surveyed countries
 	for ( var j = 0; j < countryList.length; j++ ) {
@@ -210,69 +184,102 @@ function colorMap( globalData, chosenQuestion ) {
 		country = countryList[j];
 		
 		// determine which options is chosen most often and determine color
-		returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
+		var returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
+		choicesList = [];
+		choices = [];
+		choiceMax = 0;
+		choiceVar = "";
+
+		// put necessary data in choices
+		for ( var l = 0; l < ( returncalculateChoices.length - 11 ); l++ ) {
+ 
+			if ( returncalculateChoices[l] != ""  ) {
+		
+				choicesList.push( returncalculateChoices[l] );
+				choices.push( returncalculateChoices[l + 10] );
+			}
+		}
+		
+		// determine color
+		for ( var n = 0; n < choicesList.length; n++ ) {
+
+			if ( choicesList[n] == "I understand it fully" ) {
+
+				colorCountries = ["#1A237E", "#303F9F", "#3F51B5", "#7986CB"];
+			}
+
+			else if ( choicesList[n] == "I would vote for it") {
+
+				colorCountries = ["#0D47A1", "#64B5F6", "#E57373", "#B71C1C", "#616161"];
+			}
+
+			else if ( choicesList[n] == "I would stop working" ) {
+
+				colorCountries = ["#EC407A", "#90CAF9", "#512DA8", "#C62828", "#004D40", "#FF9800", "#AFB42B", "#00E5FF", "#FFE082"];
+			}
+		}
+
+		for ( var o = 0; o < choices.length; o++ ) {
+
+			if ( choiceMax < choices[o] ) {
+
+				choiceMax = choices[o];
+				choiceVar = choicesList[o];
+				choiceColor = colorCountries[o];
+			}
+		}
+		
+		mostChosenPercentage = ( choiceMax / returncalculateChoices[( returncalculateChoices.length - 1 )] ) * 100;
 
 		// color country
 		var currentCountry = "#" + countryList[j] + "";
 
 		d3.selectAll( currentCountry )
-			.attr( "fill", returncalculateChoices[5] );
-	}
-
-	d3.select( ".map" )
-		.append( "path" )
-			.attr("data-legend", function( d ) { console.log(d.returncalculateChoices[0]); return d.returncalculateChoices[0] } )
-			.style( "fill", function( d ) { console.log(d.returncalculateChoices[2]); return d.returncalculateChoices[2] } );
-
-	var legend = d3.select( ".map" )
-		.append( "g" )
-			.attr( "class", "legend" )
-			.attr( "transform", "translate( 50, 30 )" )
-			.style( "font-size", "12px" )
-			.call( d3.legend ); 
+			.attr( "fill", choiceColor );
+	} 
 
 	// make legenda
-	// var legend = d3.select( ".map" )
-	// 	.select( "svg" )
-	// 	.append( "g" )
-	// 	.attr("class", "legenda")
-	// 	.append("rect")
-	//         .attr("id", "canvas")
-	//         .attr("x", 580)
-	//         .attr("y", 150)
-	//         .attr("class", "st0")
-	//         .attr("width", "250")
-	//         .attr("height", "150")
-	//         .style("opacity", "0.1");
+	var legend = d3.select( ".map" )
+		.select( "svg" )
+		.append( "g" )
+		.attr("class", "legenda")
+		.append("rect")
+	        .attr("id", "canvas")
+	        .attr("x", 580)
+	        .attr("y", 150)
+	        .attr("class", "st0")
+	        .attr("width", "250")
+	        .attr("height", "150")
+	        .style("opacity", "0.1");
 
     // make rectangles with colors for legenda
-    // for ( var p = 0; p < ( colorCountries.length ); p++ ) {
+    for ( var p = 0; p < ( colorCountries.length ); p++ ) {
     	
-    // 	d3.select( ".legenda")
-    // 		.select( "#canvas" )
-    //     	.append( "rect" )
-	   //          .attr( "x", 580 )
-	   //          .attr( "y", ( 23.4 * ( p ) + 150 ) )
-	   //          .attr( "class", "st1" )
-	   //          .attr( "width", "10" )
-	   //          .attr( "height", "15" )
-	   //          .style( "fill", colorCountries[p] );
-    // }
+    	d3.select( ".legenda")
+    		.select( "#canvas" )
+        	.append( "rect" )
+	            .attr( "x", 580 )
+	            .attr( "y", ( 23.4 * ( p ) + 150 ) )
+	            .attr( "class", "st1" )
+	            .attr( "width", "10" )
+	            .attr( "height", "15" )
+	            .style( "fill", colorCountries[p] );
+    }
    
 
-    // // make text element to describe input legenda and data
-    // for ( var q = 0; q < ( choicesList.length ); q++ ) {
+    // make text element to describe input legenda and data
+    for ( var q = 0; q < ( choicesList.length ); q++ ) {
     	
-    // 	d3.select(".legenda")
-    // 		.select( "#canvas" )
-	   //      	.append( "text" )
-	   //          .attr( "x", 580 )
-	   //          .attr( "y", ( 23.4 * ( q ) + 410 ) )
-	   //          .attr( "class", "st2" )
-	   //          .attr( "width", "60" )
-	   //          .attr( "height", "15" )
-	   //          .text( choicesList[q] );
-    // }   
+    	d3.select(".legenda")
+    		.select( "#canvas" )
+	        	.append( "text" )
+	            .attr( "x", 580 )
+	            .attr( "y", ( 23.4 * ( q ) + 410 ) )
+	            .attr( "class", "st2" )
+	            .attr( "width", "60" )
+	            .attr( "height", "15" )
+	            .text( choicesList[q] );
+    }   
 }
 
 // updateMap function
@@ -290,13 +297,27 @@ function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 
 	// make data complete for a country
 	var dataCountry = calculateChoice( globalData, chosenQuestion, countryCode );
+
+	// calculate percentages and choices
+	var choicesList = [];
+	var choicePercentages = [];
 	var dataCountryPercentages = [];
 
-	for ( var i = 0; i < ( dataCountry[0].length ); i++ ) {
+	for ( var i = 0; i < ( dataCountry.length - 11 ); i++ ) {
+ 
+		if ( dataCountry[i] != "" ) {
 
-		dataCountryPercentages.push( { "choice": dataCountry[0][i], "percentage": dataCountry[1][i] } );
+			choicesList.push( dataCountry[i] );
+			var percentage = ( dataCountry[i + 10] / dataCountry[( dataCountry.length - 1 )] ) * 100 ;
+			choicePercentages.push( percentage );
+		}
 	}
+	
+	for ( var j = 0; j < choicePercentages.length; j++ ) {
 
+		dataCountryPercentages.push( { "choice": choicesList[j], "percentage" : choicePercentages[j] } );
+	}
+console.log(dataCountryPercentages);
 	// state dimensions
 	var margin = { top: 10, right: 30, bottom: 200, left: 50 };
 	var width = 500 - margin.left - margin.right;
@@ -431,7 +452,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 	
 	 // make filter for all data that needs to be included in the graph
 	var filter = d3.keys( globalData[0] )
-		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "ageGroup" 
+		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "age" 
 			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeVote" 
 			&& d != "basicIncomeEffect" && d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" 
 			&& d != "weight" } );
@@ -454,11 +475,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 
 	for ( var i = 0; i < filter.length; i++ ){
 		
-		if ( filter[i] == "age" ) {
-
-			var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.linear().range([height, 0]), type: "number" };
-		}
-		var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.ordinal().rangePoints( [ 0, height ] ), type: "string" };
+		var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.ordinal().rangePoints( [ 0, height ] ), type: "string" }
 		dimensions.push(dataDimension);
 	}
 
@@ -481,9 +498,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 
 	dimensions.forEach( function( dimension ) {
 		// console.log(filterData);
-		dimension.scale.domain( dimension.type === "number"
-			? d3.extent( filterData, function( d ) { return +d[dimension.name]; } )
-			: filterData.map( function( d ) { return d[ dimension.name ]; } ).sort() );
+		dimension.scale.domain( filterData.map( function( d ) { return d[ dimension.name ]; } ).sort() );
 	} )
 	
 	// add grey background lines for context
@@ -631,14 +646,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 		var extents = actives.map( function( p ) { return p.scale.brush.extent(); } );
 
 		foreground.style( "display", function( d ) {
-			return actives.every( function( p, i ) { 
-
-				if ( p.type === "number" ) {
-					return extents[i][0] <= parseFloat(d[p.name]) && parseFloat(d[p.name]) <= extents[i][1];
-				}
-				else {
-					return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][1];
-				}
+			return actives.every( function( p, i ) { return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][1];
 			}) ? null : "none";
 		})
 	}
@@ -694,6 +702,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 			answer7 = "";
 			answer8 = "";
 			answer9 = "";
+			otherAnswer = "";
 		}
 		else if ( chosenQuestion == "basicIncomeVote" ) {
 
@@ -706,6 +715,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 			answer7 = "";
 			answer8 = "";
 			answer9 = "";
+			otherAnswer = "";
 		}
 		else if ( chosenQuestion == "basicIncomeEffect" ) {
 
@@ -718,6 +728,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 			answer7 = "I would gain additional skills";
 			answer8 = "A basic income would not affect my work choices";
 			answer9 = "None of the above";
+			otherAnswer = "";
 		}
 
 	// declare variables necessary to count votes and participants
@@ -734,45 +745,45 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 	var other = 0;
 
 	// loop through dataset
-	for ( var i = 0; i < globalData.length; i++ ) {
+	for ( var k = 0; k < globalData.length; k++ ) {
 
 		// check if participant belongs to current check country
-		if ( countryCode == globalData[i].countryCode3 ) {
+		if ( countryCode == globalData[k].countryCode3 ) {
 			
 			// count chosen options for participants per country
-			if ( globalData[i][chosenQuestion]== answer1 ) {
+			if ( globalData[k][chosenQuestion]== answer1 ) {
 				choice1 = choice1 + 1;
 			}
 			
-			else if ( globalData[i][chosenQuestion] == answer2 ) {
+			else if ( globalData[k][chosenQuestion] == answer2 ) {
 				choice2 = choice2 + 1;
 			}
 			
-			else if ( globalData[i][chosenQuestion] == answer3 ) {
+			else if ( globalData[k][chosenQuestion] == answer3 ) {
 				choice3 = choice3 + 1;
 			}
 			
-			else if ( globalData[i][chosenQuestion] == answer4 ) {
+			else if ( globalData[k][chosenQuestion] == answer4 ) {
 				choice4 = choice4 + 1;
 			}
 			
-			else if ( globalData[i][chosenQuestion] == answer5 ) {
+			else if ( globalData[k][chosenQuestion] == answer5 ) {
 				choice5 = choice5 + 1;
 			}
 
-			else if ( globalData[i][chosenQuestion] == answer6 ) {
+			else if ( globalData[k][chosenQuestion] == answer6 ) {
 				choice6 = choice6 + 1;
 			}
 			
-			else if ( globalData[i][chosenQuestion] == answer7 ) {
+			else if ( globalData[k][chosenQuestion] == answer7 ) {
 				choice7 = choice7 + 1;
 			}
 
-			else if ( globalData[i][chosenQuestion] == answer8 ) {
+			else if ( globalData[k][chosenQuestion] == answer8 ) {
 				choice8 = choice8 + 1;
 			}
 
-			else if ( globalData[i][chosenQuestion] == answer9 ) {
+			else if ( globalData[k][chosenQuestion] == answer9 ) {
 				choice9 = choice9 + 1;
 			}
 
@@ -783,57 +794,10 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 		}
 	}
 	
-	var dataCountry = [answer1, answer2, answer3, answer4, answer5, answer6, answer7, 
-	answer8, answer9, choice1, choice2, choice3, choice4, choice5, choice6, 
-	choice7, choice8, choice9, other];
+	return [answer1, answer2, answer3, answer4, answer5, answer6, answer7, 
+	answer8, answer9, otherAnswer, choice1, choice2, choice3, choice4, choice5, choice6, 
+	choice7, choice8, choice9, other, totalParticipants];
 
-	var choicesList = [];
-	var choicesPercentages = [];
-	var colorCountries = [];
-	var choiceMax = 0;
-	var choiceVar = "";
-	var choiceColor = "";
-
-	for ( var j = 0; j < ( dataCountry.length - 10 ); j++ ) {
- 
-		if ( dataCountry[j] != "" ) {
-
-			var percentage = ( dataCountry[j + 9]/ totalParticipants ) * 100;
-			choicesList.push( dataCountry[j] );
-			choicesPercentages.push( dataCountry[j + 9] );
-		}
-	}
-
-	// most chosen answer and color on map
-	for ( var k = 0; k < choicesList.length; k++ ) {
-
-		if ( choicesList[k] == "I understand it fully" ) {
-
-			colorCountries = ["#1A237E", "#303F9F", "#3F51B5", "#7986CB"];
-		}
-
-		else if ( choicesList[k] == "I would vote for it") {
-
-			colorCountries = ["#0D47A1", "#64B5F6", "#E57373", "#B71C1C", "#616161"];
-		}
-
-		else if ( choicesList[k] == "I would stop working" ) {
-
-			colorCountries = ["#EC407A", "#90CAF9", "#512DA8", "#C62828", "#004D40", "#FF9800", "#AFB42B", "#00E5FF", "#FFE082"];
-		}
-	}
-
-	for ( var l = 0; l < choicesPercentages.length; l++ ) {
-
-		if ( choiceMax < choicesPercentages[l] ) {
-
-			choiceMax = choicesPercentages[l];
-			choiceVar = choicesList[l];
-			choiceColor = colorCountries[l];
-		}
-	}
-
-	return [choicesList, choicesPercentages, colorCountries, choiceMax, choiceVar, choiceColor, totalParticipants];
 }
 
 // genderDropDown

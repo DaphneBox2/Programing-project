@@ -5,8 +5,7 @@ this javascript file is the main file for my programming project where all impor
 
 var globalData;
 var chosenQuestion = "basicIncomeVote";
-var countryCode = "Germany";
-var chosenOption = "answerOrder";
+var countryCode = "DEU";
 
 // main function
 window.onload = function main() {
@@ -31,7 +30,8 @@ function dataLoaded( error, loadedData ) {
 
 	globalData = loadedData;
 	colorMap( globalData, chosenQuestion );
-	drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode );
+	updateMap( globalData );
+	drawBarGraph( globalData, chosenQuestion, countryCode );
 	drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
 	
 }
@@ -59,9 +59,9 @@ function dropdownMap( question ) {
 		}
 	}
 	console.log(chosenQuestion);
-	updateMap( globalData, chosenQuestion, countryCode );
-	updateBarGraph( chosenOption, globalData, chosenQuestion, countryCode );
-	updateParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+	colorMap( globalData, chosenQuestion, country );
+	updateBarGraph( globalData, chosenQuestion, country );
+	updateParallelCoordinatesGraph( globalData, chosenQuestion, country );
 	return chosenQuestion;
 }
 
@@ -109,7 +109,8 @@ function drawMap() {
 				.enter()
 				.append( "path" )
 					.attr( "class", "country")
-					.attr( "id", function( d ) {console.log(d.properties.sovereignt); return d.properties.sovereignt; } )
+					.attr( "id", function( d ) { return d.properties.sov_a3; } )
+					.attr( "name", function( d ) { return d.properties.sovereignt } )
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
 					.attr( "d", path )
@@ -137,7 +138,7 @@ function drawMap() {
 					.on( "click", function(){ 
 
 						countryCode = d3.select( this ).attr( "id" );
-						updateBarGraph( chosenOption, globalData, chosenQuestion, countryCode ); 
+						updateBarGraph( globalData, chosenQuestion, countryCode ); 
 						updateParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
 					} );
 
@@ -146,7 +147,7 @@ function drawMap() {
 				var label = d.properties.sovereignt;
 
 				// determine most chosen answer for a country
-				var currentCountryCode = d.properties.sovereignt;
+				var currentCountryCode = d.properties.sov_a3;
 				var questions = ["basicIncomeAwareness", "basicIncomeVote", "basicIncomeEffect"];
 				var awareness = calculateChoice( globalData, questions[0], currentCountryCode );
 				var vote = calculateChoice( globalData, questions[1], currentCountryCode );
@@ -156,9 +157,9 @@ function drawMap() {
 				if ( awareness[3] > 0 ) {
 
 					show = ( label + "<br>"
-							+ "Awareness: " + awareness[4] + " is chosen most with " + Math.round( ( awareness[3] * 10 ) / 10 ) + " % <br>"
-							+ "Vote: " + vote[4] + " is chosen most with " + Math.round( ( vote[3] * 10 ) / 10 ) + " % <br>"
-							+ "Effect: " + effect[4] + " is chosen most with " + Math.round( ( effect[3] * 10 ) / 10 ) + " % <br>" ); 
+							+ "Awareness: " + awareness[4] + "is chosen most with " + awareness[3] + " % <br>"
+							+ "Vote: " + vote[4] + "is chosen most with" + vote[3] + " % <br>"
+							+ "Effect: " + effect[4] + "is chosen most with" + effect[3] + " % <br>" ); 
 				}
 				else {
 
@@ -180,6 +181,8 @@ gives the countries on the map a color according to corresponding data
 
 function colorMap( globalData, chosenQuestion ) {
 
+	// var data = loadData();
+	// console.log(data);
 	// declare necessary variables, choice variables are declared in order of description of codebook_basicIncome.pdf file
 	var countryList = [];
 
@@ -188,14 +191,14 @@ function colorMap( globalData, chosenQuestion ) {
 		if ( i < ( globalData.length - 1 ) ) {
 
 			// determine how many countries are surveyed
-			if ( globalData[i - 1].countryName != globalData[i].countryName ) {
+			if ( globalData[i - 1].countryCode3 != globalData[i].countryCode3 ) {
 				
-				countryList.push( globalData[i - 1]. countryName);
+				countryList.push( globalData[i - 1].countryCode3 );
 			}
 		}
 		else {
 
-			countryList.push( globalData[i - 1].countryName );
+			countryList.push( globalData[i - 1].countryCode3 );
 		}
 	}
 
@@ -229,29 +232,26 @@ function colorMap( globalData, chosenQuestion ) {
 	// 		.call( d3.legend ); 
 
 	// make legenda
-	returncalculateChoices[2].push( "#E0E0E0" );
-	returncalculateChoices[0].push( "No data available" );
-
 	var legend = d3.select( ".map" )
 		.select( "svg" )
 		.append( "g" )
 		.attr("class", "legenda")
 		.append("rect")
 	        .attr("id", "canvas")
-	        .attr("x", 300)
-	        .attr("y", 550)
+	        .attr("x", 580)
+	        .attr("y", 150)
 	        .attr("class", "st0")
 	        .attr("width", "250")
 	        .attr("height", "150")
-	        .style("opacity", "0");
+	        .style("opacity", "0.1");
 
     // make rectangles with colors for legenda
     for ( var p = 0; p < ( returncalculateChoices[2].length ); p++ ) {
     	
     	d3.select( ".legenda" )
         	.append( "rect" )
-	            .attr( "x", 300 )
-	            .attr( "y", ( 23.4 * ( p ) + 550 ) )
+	            .attr( "x", 580 )
+	            .attr( "y", ( 23.4 * ( p ) + 150 ) )
 	            .attr( "class", "st1" )
 	            .attr( "width", "10" )
 	            .attr( "height", "15" )
@@ -264,8 +264,8 @@ function colorMap( globalData, chosenQuestion ) {
     	console.log(returncalculateChoices[0][q]);
     	d3.select( ".legenda" )
 	        	.append( "text" )
-	            .attr( "x", 320 )
-	            .attr( "y", ( 23.4 * ( q ) + 560 ) )
+	            .attr( "x", 600 )
+	            .attr( "y", ( 23.4 * ( q ) + 160 ) )
 	            .attr( "class", "st2" )
 	            .attr( "width", "60" )
 	            .attr( "height", "15" )
@@ -275,12 +275,7 @@ function colorMap( globalData, chosenQuestion ) {
 
 // updateMap function
 
-function updateMap( globalData, chosenQuestion, country ) {
-
-	d3.select( ".legenda" )
-		.remove();
-
-	colorMap( globalData, chosenQuestion, country );
+function updateMap(){
 }
 
 /*
@@ -289,52 +284,21 @@ this function draws for the first time the bar graph of the website after countr
 Code inspired from: https://bost.ocks.org/mike/bar/
 */
 
-function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
-	
-	// update title so user knows which country is selected and which question is selected
-	var selectedQuestion = "";
-
-	if ( chosenQuestion == "basicIncomeAwareness" ) {
-
-		selectedQuestion = "How familiar are you with the concept known as basic income?";
-	}
-	else if ( chosenQuestion == "basicIncomeVote" ) {
-
-		selectedQuestion = "If there would be a referendum on introducing basic income today, how would you vote?";
-	}
-	else if ( chosenQuestion == "basicIncomeEffect" ) {
-
-		selectedQuestion = "What could be the most likely effect of basic income on your work choices?";
-	}
-
-	d3.select( ".barChartTitle" )
-		.text( "Answers chosen for the question: " + selectedQuestion + " from participants in " + countryCode );
+function drawBarGraph( globalData, chosenQuestion, countryCode ) {
 
 	// make data complete for a country
 	var dataCountry = calculateChoice( globalData, chosenQuestion, countryCode );
 	var dataCountryPercentages = [];
-
-	if ( dataCountry[1][0] == 0 && dataCountry[1][1] == 0 && dataCountry[1][2] == 0 && dataCountry[1][3] == 0 && dataCountry[1][5] == 0 ) {
-
-		d3.select( ".barChart" )
-			.text( "Sorry we don't have any data from this country." );
-	}
 
 	for ( var i = 0; i < ( dataCountry[0].length ); i++ ) {
 
 		dataCountryPercentages.push( { "choice": dataCountry[0][i], "percentage": dataCountry[1][i] } );
 	}
 
-	// make translation formula to calculate the bar heigth and width depending on choice radio-button
-	if ( chosenOption == "percentage" ) {
-
-		dataCountryPercentages.sort( function( a, b ) { return b.percentage - a.percentage; } );
-	}
-
 	// state dimensions
-	var margin = { top: 50, right: 30, bottom: 250, left: 100 };
-	var width = 500 - margin.left - margin.right;
-	var height = 600 - margin.top - margin.bottom;
+	var margin = { top: 10, right: 30, bottom: 200, left: 50 };
+	var width = 300 - margin.left - margin.right;
+	var height = 500 - margin.top - margin.bottom;
 
 	var y = d3.scale.linear()
 		.range( [height, 0] );
@@ -344,7 +308,7 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 
 	// make translation formula to calculate the bar heigth and width
 	x.domain( dataCountryPercentages.map( function ( d ) { return d.choice; } ) );
-	y.domain( [0, ( d3.max( dataCountryPercentages, function ( d ) { return d.percentage; } ) )] ).nice();
+	y.domain( [0, d3.max( dataCountryPercentages, function ( d ) { return d.percentage; } )] );
 
 	var chart = d3.select( ".barChart" )
 		.attr( "width", ( width + margin.left + margin.right ) )
@@ -361,7 +325,7 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 		.enter()
 		.append( "g" )
 			.attr("class", "bar")
-			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice ) ) + "," + margin.top + " )"; } );
+			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice ) ) + ",0 )"; } );
 
 	bar.append( "text" )
 		.attr( "x", barWidth / 2 )
@@ -406,13 +370,13 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 
 	var xLabels = chart.append( "g" )
 		.attr( "class", "xAxis" )
-		.attr( "transform", "translate(" + margin.left + "," + ( height + margin.top ) + " )" )
+		.attr( "transform", "translate(" + margin.left + "," + height + " )" )
 		.call( xAxis );	
 	
 	var xName = chart.append( "text" )
 		.attr( "class", "label" )
-		.attr( "x", width + 100 )
-		.attr( "y", height + 100 )
+		.attr( "x", width + 50 )
+		.attr( "y", height + 40 )
 		// .attr("transform", "translate(" + (width / 2) + ", 20)")
 		.style( "text-anchor", "end" )
 		.text( "choice" );
@@ -428,13 +392,13 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 
 	chart.append( "g" )
 		.attr( "class", "y axis" )
-		.attr( "transform", "translate(" + margin.left + "," + margin.top + ")" )
+		.attr( "transform", "translate(" + margin.left + ", 0 )" )
 		.call( yAxis );	
 	
 	chart.append( "text" )
 		.attr( "class", "label" )
 		.attr( "x", -30 )
-		.attr( "y", 60 )
+		.attr( "y", 20 )
 		.attr( "transform", "rotate( -90 )" )
 		.style( "text-anchor", "end" )
 		.text( "percentage" );
@@ -442,23 +406,13 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 
 // updateBarGraph function
 
-function updateBarGraph( option ){
+function updateBarGraph( globalData, chosenQuestion, countryCode ){
 	
-	if ( document.getElementById( option ).id == "answerOrder" ) {
-		
-		chosenOption = "answerOrder";
-	}
-
-	else if ( document.getElementById( option ).id == "percentage" ) {
-
-		chosenOption = "percentage";
-	}
-
 	d3.select( ".barChart" )
 		.selectAll( "g" )
-			.remove();
+			.remove()
 
-	drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode );
+	drawBarGraph( globalData, chosenQuestion, countryCode );
 }
 
 /*
@@ -468,22 +422,17 @@ code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostoc
 
 function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode ) {
 
-	// update title so user knows which country is selected and which question is selected
-	d3.select( ".parallelOrientationsTitle" )
-		.append( "g" )
-			.attr( "text-anchor", "middle" )
-			.text( "Demographics of participants in " + countryCode );
-
 	// declare size of graph and margins
-	var margin = { top: 100, right: 200, bottom: 30, left: 30 };
-	var width = 750 - margin.left - margin.right;
+	var margin = { top: 100, right: 200, bottom: 30, left: 50 };
+	var width = 700 - margin.left - margin.right;
 	var height = 700 - margin.top - margin.bottom;
 	
 	 // make filter for all data that needs to be included in the graph
 	var filter = d3.keys( globalData[0] )
-		.filter( function( d ) { return d != "countryCode2" && d != "countryName" && d != "ageGroup" 
-			&& d != "basicIncomeAwareness" && d != "basicIncomeVote" && d != "basicIncomeEffect" 
-			&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" } );
+		.filter( function( d ) { return d != "countryCode2" && d != "countryCode3" && d != "ageGroup" 
+			&& d != "gender" && d != "ruralUrban" && d != "basicIncomeAwareness" && d != "basicIncomeVote" 
+			&& d != "basicIncomeEffect" && d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" 
+			&& d != "weight" } );
 
 	filter.push( chosenQuestion );
 
@@ -492,55 +441,24 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 
 	for ( var h = 0; h < globalData.length; h++ ) {
 
-		if ( countryCode == globalData[h].countryName ){
+		if ( countryCode == globalData[h].countryCode3 ){
 
 			filterData.push( globalData[h] );
 		}
 	}
+	
+	// make the different scales for each object in filter
+	var dimensions = [];
 
-	var dimensions = [
-	{
-		name: "age",
-		scale: d3.scale.linear().range( [0, height] ),
-		type: "number"
-	},
-	{
-		name: "ruralUrban",
-		scale: d3.scale.ordinal().rangePoints( [0, height] ),
-		sort: ["rural", "urban"],
-		type: "string"
-	},
-	{
-		name: "gender",
-		scale: d3.scale.ordinal().rangePoints( [0, height] ),
-		sort: ["male", "female"],
-		type: "string"
-	},
-	{
-		name: "educationLevel",
-		scale: d3.scale.ordinal().rangePoints( [0, height] ),
-		sort: ["high", "medium", "low", "no", "NA"],
-		type: "string"
-	},
-	{
-		name: "fullTime",
-		scale: d3.scale.ordinal().rangePoints( [ 0, height ] ),
-		sort: ["yes", "no"],
-		type: "string"
-	},
-	{
-		name: "children",
-		scale: d3.scale.ordinal().rangePoints( [ 0, height ] ),
-		sort: ["yes", "no"],
-		type: "string"
-	},
-	{
-		name: chosenQuestion,
-		scale: d3.scale.ordinal().rangePoints( [0, height] ),
-		sort: calculateChoice( globalData, chosenQuestion, countryCode )[0],
-		type: "string"
-	}];
+	for ( var i = 0; i < filter.length; i++ ){
+		
+		if ( filter[i] == "age" ) {
 
+			var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.linear().range([height, 0]), type: "number" };
+		}
+		var dataDimension = { name: "" + filter[i] + "", scale: d3.scale.ordinal().rangePoints( [ 0, height ] ), type: "string" };
+		dimensions.push(dataDimension);
+	}
 
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
@@ -563,7 +481,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 		// console.log(filterData);
 		dimension.scale.domain( dimension.type === "number"
 			? d3.extent( filterData, function( d ) { return +d[dimension.name]; } )
-			: dimension.sort);
+			: filterData.map( function( d ) { return d[ dimension.name ]; } ).sort() );
 	} )
 	
 	// add grey background lines for context
@@ -624,7 +542,7 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 		.append( "g" )
 			.attr( "class", "axis" )
 			.attr( "id", function( d ) { return d.name; } )
-			.each( function( d ) {console.log(d3.select(this).call(yAxis.scale(d.scale))); d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
+			.each( function( d ) { d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
 		.append( "text" )
 			.attr( "class", "title" )
 			.style( "text-anchor", "middle" )
@@ -741,7 +659,7 @@ function barUpdatesParallel( globalData, chosenQuestion, countryCode, answer ) {
 
 	for ( var i = 0; i < globalData.length; i++ ) {
 
-		if ( globalData[i].countryName == countryCode && globalData[i][chosenQuestion] == answer ) {
+		if ( globalData[i].countryCode3 == countryCode && globalData[i][chosenQuestion] == answer ) {
 
 			answerData.push( globalData[i] );
 		}
@@ -817,7 +735,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 	for ( var i = 0; i < globalData.length; i++ ) {
 
 		// check if participant belongs to current check country
-		if ( countryCode == globalData[i].countryName ) {
+		if ( countryCode == globalData[i].countryCode3 ) {
 			
 			// count chosen options for participants per country
 			if ( globalData[i][chosenQuestion]== answer1 ) {
@@ -880,10 +798,10 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 
 			var percentage = ( dataCountry[j + 9]/ totalParticipants ) * 100;
 			choicesList.push( dataCountry[j] );
-			choicesPercentages.push( percentage );
+			choicesPercentages.push( dataCountry[j + 9] );
 		}
 	}
-
+	console.log(choicesPercentages);
 	// most chosen answer and color on map
 	for ( var k = 0; k < choicesList.length; k++ ) {
 
@@ -902,7 +820,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 			colorCountries = ["#EC407A", "#90CAF9", "#512DA8", "#C62828", "#004D40", "#FF9800", "#AFB42B", "#00E5FF", "#FFE082"];
 		}
 	}
-	console.log(choicesPercentages);
+
 	for ( var l = 0; l < choicesPercentages.length; l++ ) {
 
 		if ( choiceMax < choicesPercentages[l] ) {
@@ -914,6 +832,72 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 	}
 
 	return [choicesList, choicesPercentages, colorCountries, choiceMax, choiceVar, choiceColor, totalParticipants];
+}
+
+// genderDropDown
+function genderDropDown( gender ) {
+
+	var chosenGender;
+	var genderData = [];
+
+	// shows question of choice by user and gives it to the data selection function
+	if ( document.getElementById( gender ).id == "male" ) {
+
+		chosenGender = "male";
+	}
+	else if ( document.getElementById( gender ).id == "female" ) {
+
+		chosenGender = "female";
+	}
+
+	for ( var i = 0; i < globalData.length; i++ ) {
+
+		if ( globalData[i].countryCode3 == countryCode && globalData[i].gender == chosenGender ) {
+
+			genderData.push( globalData[i] );
+		}
+	}
+
+	// console.log(genderData);
+
+	d3.select( ".parallelOrientations" )
+		.selectAll( "g" )
+		.remove();
+
+	drawParallelCoordinatesGraph( genderData, chosenQuestion, countryCode );	
+}
+
+// genderDropDown
+function residencyDropDown( residency ) {
+
+	var chosenResidency;
+	var residencyData = [];
+
+	// shows question of choice by user and gives it to the data selection function
+	if ( document.getElementById( residency ).id == "rural" ) {
+
+		chosenResidency = "rural";
+	}
+	else if ( document.getElementById( residency ).id == "urban" ) {
+
+		chosenResidency = "urban";
+	}
+		
+	for ( var i = 0; i < globalData.length; i++ ) {
+
+		if ( globalData[i].countryCode3 == countryCode && globalData[i].ruralUrban == chosenResidency ) {
+
+			residencyData.push( globalData[i] );
+		}
+	}	
+
+	// console.log(residencyData);
+
+	d3.select( ".parallelOrientations" )
+		.selectAll( "g" )
+		.remove();
+
+	drawParallelCoordinatesGraph( residencyData, chosenQuestion, countryCode );
 }
 
 /* 

@@ -59,6 +59,10 @@
         <div class="row content">
           <div class="col-sm-6 map">
             <h4>Map of Europe</h4>
+            <p>
+              Please hover over a country to see the most popular votes. <br>
+              Click on a country to see more info in the other graphs.
+            </p>
             <div class="dropdown">
               <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose question
                 <span class="caret"></span></button>
@@ -71,23 +75,20 @@
             <svg class="map"></svg>
           </div>
           <div class="col-sm-6 charts">
-            <h5>Bar chart</h5>
+            <h4 class="barChartTitle"></h4>
+            <p>
+              Click on a bar to view the demographics of people who choose this answer in the graph below.
+            </p>
+            <form action="">
+              <input type="radio" class="sort" id="answerOrder" name="sort" value="answer order" onclick="updateBarGraph('answerOrder')"> Answer order<br>
+              <input type="radio" class="sort" id="percentage" name="sort" value="percentage" onclick="updateBarGraph('percentage')"> Percentage<br>
+            </form>
             <svg class="barChart"></svg>
+            <h4 class="parallelOrientationsTitle"></h4>
+            <p>
+              Please hold and drag to select part of axis to highlight the selected answers.
+            </p>
             <svg class="parallelOrientations"></svg>
-            <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select gender
-                <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a href="#" class="choice" id="male" onclick="genderDropDown( 'male' )">Male</a></li>
-                <li><a href="#" class="choice" id="female" onclick="genderDropDown( 'female' )">Female</a></li>
-          </div>
-          <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select residency
-                <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a href="#" class="choice" id="rural" onclick="residencyDropDown( 'rural' )">Rural</a></li>
-                <li><a href="#" class="choice" id="urban" onclick="residencyDropDown( 'urban' )">Urban</a></li>
-          </div>
         </div>
       </div>
     </div>

@@ -7,12 +7,13 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-  	<script src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     <script src="//d3js.org/topojson.v1.min.js"></script>
     <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
+    <script src="code/d3.legend.js"></script>
     <script src="code/programming_project.js"></script>
       <style>
         /* Set height of the grid so .sidenav can be 100% (adjust if needed) */
@@ -58,6 +59,10 @@
         <div class="row content">
           <div class="col-sm-6 map">
             <h4>Map of Europe</h4>
+            <p>
+              Please hover over a country to see the most popular votes. <br>
+              Click on a country to see more info in the other graphs.
+            </p>
             <div class="dropdown">
               <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Choose question
                 <span class="caret"></span></button>
@@ -70,23 +75,20 @@
             <svg class="map"></svg>
           </div>
           <div class="col-sm-6 charts">
-            <h5>Bar chart</h5>
+            <h4 class="barChartTitle"></h4>
+            <p>
+              Click on a bar to view the demographics of people who choose this answer in the graph below.
+            </p>
+            <form action="">
+              <input type="radio" class="sort" id="answerOrder" name="sort" value="answer order" onclick="updateBarGraph('answerOrder')"> Answer order<br>
+              <input type="radio" class="sort" id="percentage" name="sort" value="percentage" onclick="updateBarGraph('percentage')"> Percentage<br>
+            </form>
             <svg class="barChart"></svg>
+            <h4 class="parallelOrientationsTitle"></h4>
+            <p>
+              Please hold and drag to select part of axis to highlight the selected answers.
+            </p>
             <svg class="parallelOrientations"></svg>
-            <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select gender
-                <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a href="#" class="choice" id="male" onclick="genderDropDown( 'male' )">Male</a></li>
-                <li><a href="#" class="choice" id="female" onclick="genderDropDown( 'female' )">Female</a></li>
-          </div>
-          <div class="dropdown">
-              <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Select residency
-                <span class="caret"></span></button>
-              <ul class="dropdown-menu">
-                <li><a href="#" class="choice" id="rural" onclick="residencyDropDown( 'rural' )">Rural</a></li>
-                <li><a href="#" class="choice" id="urban" onclick="residencyDropDown( 'urban' )">Urban</a></li>
-          </div>
         </div>
       </div>
     </div>

@@ -24,10 +24,10 @@ window.onload = function main() {
 	drawMap();
 
 	d3.queue()
-		.defer( d3.csv, "basicIncomeDoubleCountries.csv" )
-		.defer( d3.csv, "parallelCoordinatesDataAwaraness.csv" )
-		.defer( d3.csv, "parallelCoordinatesDataEffect.csv" )
-		.defer( d3.csv, "parallelCoordinatesDataVote.csv" )
+		.defer( d3.csv, "code/basicIncomeDoubleCountries.csv" )
+		.defer( d3.csv, "code/parallelCoordinatesDataAwaraness.csv" )
+		.defer( d3.csv, "code/parallelCoordinatesDataEffect.csv" )
+		.defer( d3.csv, "code/parallelCoordinatesDataVote.csv" )
 		.await( dataLoaded );
 	
 }
@@ -122,7 +122,7 @@ function drawMap() {
 			.append( "div" )
 			.attr( "class", "tooltip hidden" );
 		
-		d3.json("scripts/custom-geo-3_topojson.json", function( error, data ) {
+		d3.json("code/scripts/custom-geo-3_topojson.json", function( error, data ) {
 
 			if (error) throw error;
 
@@ -686,7 +686,7 @@ function drawParallelCoordinatesGraph() {
 		.attr( "class", "legenda" )
 		.attr( "transform", "translate( 550, 600 )" )
 		.style( "font-size", "12px" )
-		.call( d3. legend );
+		.call( d3.legend );
 
 	// returns path for given data point
 	function draw( d ) {

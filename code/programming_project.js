@@ -327,7 +327,7 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 
 	if ( dataCountry[1][0] == 0 && dataCountry[1][1] == 0 && dataCountry[1][2] == 0 && dataCountry[1][3] == 0 && dataCountry[1][5] == 0 ) {
 
-		d3.select( ".barChart" )
+		d3.select( ".barChartTitle" )
 			.text( "Sorry we don't have any data from this country." );
 	}
 
@@ -371,7 +371,7 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 			.data( dataCountryPercentages )
 		.enter()
 		.append( "g" )
-			.attr("class", "bar")
+			.attr( "class", "bar" )
 			.attr( "transform", function( d ){ return "translate( " + ( margin.left + x( d.choice ) ) + "," + margin.top + " )"; } );
 
 	bar.append( "text" )
@@ -482,12 +482,10 @@ function drawParallelCoordinatesGraph() {
 	
 	// update title so user knows which country is selected and which question is selected
 	d3.select( ".parallelOrientationsTitle" )
-		.append( "g" )
-			.attr( "text-anchor", "middle" )
-			.text( "Demographics of participants in " + countryCode );
+		.text( "Demographics of participants in " + countryCode );
 
 	// declare size of graph and margins
-	var margin = { top: 100, right: 200, bottom: 30, left: 30 };
+	var margin = { top: 30, right: 230, bottom: 100, left: 30 };
 	var width = 750 - margin.left - margin.right;
 	var height = 700 - margin.top - margin.bottom;
 
@@ -599,7 +597,6 @@ function drawParallelCoordinatesGraph() {
 	// add grey background lines for context
 	background = chart.append( "g" )
 			.attr( "class", "background" )
-			.attr( "class", function( d ) { d.chosenQuestion; } )
 		.selectAll( "path" )
 			.data( filterData )
 		.enter()
@@ -609,7 +606,6 @@ function drawParallelCoordinatesGraph() {
 	// add blue foreground lines for focus
 	foreground = chart.append( "g" )
 			.attr( "class", "foreground" )
-			.attr( "class", function( d ) { d.chosenQuestion; } )
 		.selectAll( "path" )
 			.data( filterData )
 		.enter()
@@ -661,6 +657,7 @@ function drawParallelCoordinatesGraph() {
 		.append( "text" )
 			.attr( "class", "title" )
 			.style( "text-anchor", "middle" )
+			.attr( "font-size", "12px" )
 			.attr( "y", -9 )
 			.text( function( d ) { return d.name; });
 
@@ -668,6 +665,7 @@ function drawParallelCoordinatesGraph() {
 	d3.select( "#" + chosenQuestion )
 		.selectAll( ".tick" )
 			.select( "text" )
+				.attr( "font-size", "10px" )
 				.style( "text-anchor", "start" )
 				.attr( "transform", "translate( 10, 0 )" );
 
@@ -686,7 +684,7 @@ function drawParallelCoordinatesGraph() {
 	// make a legend
 	var legend = chart.append( "g" )
 		.attr( "class", "legenda" )
-		.attr( "transform", "translate( 550, 30 )" )
+		.attr( "transform", "translate( 550, 600 )" )
 		.style( "font-size", "12px" )
 		.call( d3. legend );
 
@@ -738,9 +736,6 @@ function drawParallelCoordinatesGraph() {
 // updateParallelCoordinatesGraph function
 function updateParallelCoordinatesGraph( ) {
 
-	d3.select( ".parallelOrientationsTitle" )
-		.remove();
-
 	d3.selectAll( ".legend-box" )
 		.remove();
 
@@ -750,35 +745,6 @@ function updateParallelCoordinatesGraph( ) {
 
 	drawParallelCoordinatesGraph();
 }
-
-/* 
-function barUpdatesParallel
-updates the parallel coordinates graph upon click on bar of bar chart 
-and changes the data input for the parallel coordinates graph
-updating happens by removing graph and recalling the drawParallelCoordinatesGraph function
-*/
-
-function barUpdatesParallel() {
-
-	var answerData = [];
-
-	for ( var i = 0; i < globalData.length; i++ ) {
-
-		if ( globalData[i].countryName == countryCode && globalData[i][chosenQuestion] == answer ) {
-
-			answerData.push( globalData[i] );
-		}
-	}
-	
-	// redraw lines
-	d3.select( ".parallelOrientations" )
-		.selectAll( "g" )
-			.remove();
-
-	drawParallelCoordinatesGraph();
-
-}
-
 
 /* 
 calculateChoice function

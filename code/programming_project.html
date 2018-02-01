@@ -15,19 +15,6 @@
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
     <script src="d3.legend.js"></script>
     <script src="programming_project.js"></script>
-      <style>
-        /* Set height of the grid so .sidenav can be 100% (adjust if needed) */
-        .row.content {height: 1500px}
-
-        /* On small screens, set height to 'auto' for sidenav and grid */
-        @media screen and (max-width: 767px) {
-          .sidenav {
-            height: auto;
-            padding: 15px;
-          }
-          .row.content {height: auto;} 
-        }
-    </style>
     <link rel="stylesheet" type="text/css" href="programming_project.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   </head>
@@ -46,7 +33,7 @@
       <button class="tabLinks" onclick="showInfo(event,'data')">Data</button>
     </div>
 
-    <!-- tab content -->
+    <!-- tab content info page -->
     <div id="info" class="tabContent">
       <br><br><br>
       <h3>Basic income, what is it?</h3>
@@ -58,6 +45,7 @@
       <p>Background information about basic income is found on <a href="https://en.wikipedia.org/wiki/Basic_income">Wikipedia</a></p>
     </div>
 
+    <!-- tab content data page -->
     <div id="data" class="tabContent">
       <br><br><br>
       <h3>Data</h3>
@@ -83,9 +71,6 @@
           </div>
           <div class="col-sm-6 charts">
             <h4 class="barChartTitle"></h4>
-            <p>
-              Click on a bar to view the demographics of people who choose this answer in the graph below.
-            </p>
             <form action="">
               <input type="radio" class="sort" id="answerOrder" name="sort" value="answer order" onclick="updateBarGraph('answerOrder')"> Answer order<br>
               <input type="radio" class="sort" id="percentage" name="sort" value="percentage" onclick="updateBarGraph('percentage')"> Percentage<br>

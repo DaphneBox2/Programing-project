@@ -3,6 +3,9 @@
 ## Short description
 This application shows the opinion and knowledge about basic income from citizens in all European Union member countries. At first an overall most chosen answer of all countries is shown on a map. Secondly the two other graphs show more detailed information about the choices and demographics of the participants of one single country. The country displayed in the graphs is chosen by clicking on the correspondend country in the map.
 
+## Screenshot
+![](doc/screenshotWebpage.png)
+
 ## Technical design
 
 ### Overview
@@ -21,12 +24,11 @@ ShowInfo: is the function that is used to show and hide the two tabs on the webp
 *dataLoaded: makes from the data a global variable and calls the functions that draw the two graphs and the function that colors the maps.
 *drawMap: this function draws the strokes/lines of the map and host the mouse events when an onclick happens drawMap calls the two functions that update the two graphs. For the information that needs to be shown when hovering over a country the function calls the calculateChoice function to get the calculated outcome.
 *colorMap: colors the countries on the map according to outcome which is obtained via splitting the data on country and calling the calculateChoice function. Furthermore, this function creates the legend of the map.
-*drawBarGraph: draws the total barGraph and uses calculateChoice to calculate the outcome of the data. When clicking on the bar the function calls the barUpdatesParallel function.
+*drawBarGraph: draws the total barGraph and uses calculateChoice to calculate the outcome of the data.
 *drawParallelCoordinatesGraph: draws the parallel coordinates graph for this function three datasets with pre-counting are necessary which is done with a python file (parallelCoordinateData.py).
 *updateMap: updates the colors of the map by removing the legend and recalling the colorMap function.
 *updateBarGraph: is called when clicking on the radio buttons at the website or after required data changes and the function removes the current bar graph and calls the drawBarGraph function.
-*calculateChoice: calculates given the input variables how many times a certain answer is chosen on a questionnaire by participants comming from the same country and counts the total participants from a certain country and the percentages of all answer.
-*barUpdatesParallel: on click on barchart this function is called and alters the data given to the parallel coordinates graph 
+*calculateChoice: calculates given the input variables how many times a certain answer is chosen on a questionnaire by participants comming from the same country and counts the total participants from a certain country and the percentages of all answer. 
 *updateParallelCoordinatesGraph: is called upon required data changes and removes the parallel coordinates graph and recalls the drawParallelCoordinatesGraph function.
 *dropdownMap: is the code called after choice on dropdown is made/chosen it changes the global variable chosenQuestion and calls the functions to update the graphs and map colors.
 

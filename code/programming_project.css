@@ -61,13 +61,29 @@ p1{
   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
 }
 
- div.tooltip {
-      color: #222; 
-      background: #fff; 
-      border-radius: 3px; 
-      box-shadow: 0px 0px 2px 0px #a6a6a6; 
-      padding: .2em; 
-      text-shadow: #f5f5f5 0 1px 0;
-      opacity: 0.9; 
-      position: absolute;
-    }
+.legend-box{
+  fill: none;
+}
+
+div.tooltip {
+  color: #222; 
+  background: #fff; 
+  border-radius: 3px; 
+  box-shadow: 0px 0px 2px 0px #a6a6a6; 
+  padding: .2em; 
+  text-shadow: #f5f5f5 0 1px 0;
+  opacity: 0.9; 
+  position: absolute;
+}
+        /* Set height of the grid so .sidenav can be 100% (adjust if needed) */
+        .row.content {height: 1500px}
+
+        /* On small screens, set height to 'auto' for sidenav and grid */
+        @media screen and (max-width: 767px) {
+          .sidenav {
+            height: auto;
+            padding: 15px;
+          }
+          .row.content {height: auto;} 
+        }
+  

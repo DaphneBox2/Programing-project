@@ -1,42 +1,63 @@
 /* Daphne Box
 10455701
-this javascript file is the main file for my programming project where all important functions are written to load data and figures are programmed
+this javascript file is the main file for my programming project
+where all functions are written to load data, draw figures, update/change them
+and handle events that are called by the html page
 */
 
+// declare all global variables and give them a basic value that needs to be used upon loading the page
 var globalData;
+var parallelAwareness;
+var parallelVote;
+var parallelEffect;
 var chosenQuestion = "basicIncomeVote";
 var countryCode = "Germany";
 var chosenOption = "answerOrder";
 
-// main function
-window.onload = function main() {
-	// load data
-	// d3.csv("basicIncomeDoubleCountries.csv", function( data ) {
-		
-	// 	drawMap();
-	// 	drawBarGraph( data );
-	// 	drawParallelCoordinatesGraph( data );
-	// })
+/* 
+main function
+calls the function to draw the lines of the map, loads all data and calls the dataLoaded function
+*/
 
+window.onload = function main() {
+	
 	drawMap();
+
 	d3.queue()
 		.defer( d3.csv, "basicIncomeDoubleCountries.csv" )
+		.defer( d3.csv, "parallelCoordinatesDataAwaraness.csv" )
+		.defer( d3.csv, "parallelCoordinatesDataEffect.csv" )
+		.defer( d3.csv, "parallelCoordinatesDataVote.csv" )
 		.await( dataLoaded );
 	
 }
 
-// loadData
-function dataLoaded( error, loadedData ) {
+/* 
+loadData 
+makes from the loaded data a global variable and calls the functions that draw the two graphs 
+and the function that colors the map
+*/
+
+function dataLoaded( error, loadedData, parallelAwarenessData, parallelEffectData, parallelVoteData ) {
 	if (error) throw error;
 
 	globalData = loadedData;
+	parallelAwareness = parallelAwarenessData;
+	parallelVote = parallelVoteData;
+	parallelEffect = parallelEffectData; 
 	colorMap( globalData, chosenQuestion );
 	drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode );
-	drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph();
 	
 }
 
-// dropdownMap function
+/*
+dropdownMap function
+is operated from the html file and reacts on the choice of a question by altering the global 
+chosenQuestion variable and calls all update functions for the graphs and map colors
+code comes from: https://www.w3schools.com/howto/howto_js_dropdown.asp
+ */
+
 function dropdownMap( question ) {
 
 	// shows question of choice by user and gives it to the data selection function
@@ -58,14 +79,19 @@ function dropdownMap( question ) {
 			chosenQuestion = "basicIncomeEffect";
 		}
 	}
-	console.log(chosenQuestion);
+	
 	updateMap( globalData, chosenQuestion, countryCode );
 	updateBarGraph( chosenOption, globalData, chosenQuestion, countryCode );
 	updateParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+	
 	return chosenQuestion;
 }
 
 /* drawMap function
+this function draws the strokes/lines of the map and host the mouseover, mouseout and click events
+when an onclick happens drawMap calls the two functions that update the two graphs function calls the 
+calculateChoice function as well when hovering over a country so it can display the data
+furthermore this function loads in its own data necessary to draw a map
 code comes from: http://bl.ocks.org/milafrerichs/69035da4707ea51886eb
 json of Europe comes from: https://geojson-maps.ash.ms/
 */
@@ -107,7 +133,7 @@ function drawMap() {
 				.enter()
 				.append( "path" )
 					.attr( "class", "country")
-					.attr( "id", function( d ) {console.log(d.properties.sovereignt); return d.properties.sovereignt; } )
+					.attr( "id", function( d ) { return d.properties.sovereignt; } )
 					.attr( "stroke", "#000000" )
 					.attr( "fill", "#E0E0E0" )
 					.attr( "d", path )
@@ -117,13 +143,6 @@ function drawMap() {
 						var mouseX = d3.event.pageX;
 						var mouseY = d3.event.pageY;
 						showToolTip( d, mouseX, mouseY );  
-						// d3.select( this )
-						// 	.append( "div" )
-						// 	.attr("class", "countryName")
-						// 	.text( d.properties.sovereignt )
-						// 	.html( function( d ) {
-						// 		return ("<g><rect id = countryName></rect><p>" + d.properties.sovereignt + "</p></g>");
-						// 	} ) 
 						} )
 					.on( "mouseout", function( d ){ 
 						d3.select( this )
@@ -173,7 +192,9 @@ function drawMap() {
 
 /* 
 colorMap function
-gives the countries on the map a color according to corresponding data
+gives the countries on the map a color according to corresponding data, the data is first split on country 
+afterwards the outcome is calculated via the calculateChoice function
+this function creates also the legend of the map
 */
 
 function colorMap( globalData, chosenQuestion ) {
@@ -207,24 +228,12 @@ function colorMap( globalData, chosenQuestion ) {
 		// determine which options is chosen most often and determine color
 		returncalculateChoices = calculateChoice( globalData, chosenQuestion, country );
 
-		// color country
+		// color the country
 		var currentCountry = "#" + countryList[j] + "";
 
 		d3.selectAll( currentCountry )
 			.attr( "fill", returncalculateChoices[5] );
 	}
-
-	// d3.select( ".map" )
-	// 	.append( "path" )
-	// 		.attr("data-legend", returncalculateChoices[0] )
-			// .style( "fill", function( d ) { console.log(d.returncalculateChoices[2]); return d.returncalculateChoices[2] } );
-
-	// var legend = d3.select( ".map" )
-	// 	.append( "g" )
-	// 		.attr( "class", "legend" )
-	// 		.attr( "transform", "translate( 50, 30 )" )
-	// 		.style( "font-size", "12px" )
-	// 		.call( d3.legend ); 
 
 	// make legenda
 	returncalculateChoices[2].push( "#E0E0E0" );
@@ -259,7 +268,7 @@ function colorMap( globalData, chosenQuestion ) {
 
     // // make text element to describe input legenda and data
     for ( var q = 0; q < ( returncalculateChoices[0].length ); q++ ) {
-    	console.log(returncalculateChoices[0][q]);
+    	
     	d3.select( ".legenda" )
 	        	.append( "text" )
 	            .attr( "x", 320 )
@@ -271,7 +280,10 @@ function colorMap( globalData, chosenQuestion ) {
     }   
 }
 
-// updateMap function
+/* 
+updateMap function
+updates the colors of the map by removing the legend and recalling the colorMap function
+*/
 
 function updateMap( globalData, chosenQuestion, country ) {
 
@@ -283,8 +295,9 @@ function updateMap( globalData, chosenQuestion, country ) {
 
 /*
 drawBarGraph function
-this function draws for the first time the bar graph of the website after country click. 
-Code inspired from: https://bost.ocks.org/mike/bar/
+this function draws the bar graph on the website and uses the calculateChoice function to calculate data outcome 
+when clicking on the bar the function calls the barUpdatesParallel function
+code inspired from: https://bost.ocks.org/mike/bar/
 */
 
 function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
@@ -375,20 +388,12 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 		.on( "mouseover", function( d ) {
 			tip.show( d ); 
 			d3.select( this )
-				.style( "fill", "red" ); 
-			// d3.select( this )
-			// 	.select( "text" )
-			// 		.attr( "x", function() { return x( d.choice ) + ( ( barWidth / 2 ) + margin.left ) } )
-			// 		.attr( "y", function() { return y( d.percentage ) } )
-			// 		.text( function() { return d.choice } )
-			// 		.style( "opacity", 1 ); 
+				.style( "fill", "red" );  
 		} )
 		.on( "mouseout", function( d ) {
 			tip.hide( d );
 			d3.select( this )
 				.style( "fill", "blue" ); 
-			// d3.select( "text" )
-			// 	.style( "opacity", 0 ); 
 		} )
 		.on( "click", function( d ){ 
 			var answer = d.choice;
@@ -438,7 +443,12 @@ function drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode ) {
 		.text( "percentage" );
 }
 
-// updateBarGraph function
+/* 
+updateBarGraph function
+is called when clicking on the radio button and when data changes happened 
+so the bar graph needed to be updated
+code comes from: https://www.w3schools.com/howto/howto_js_dropdown.asp
+*/
 
 function updateBarGraph( option ){
 	
@@ -460,12 +470,16 @@ function updateBarGraph( option ){
 }
 
 /*
- drawParallelCoordinatesGraph function
+drawParallelCoordinatesGraph function
+draws the parallel coordinates graph for this function three data files were necessary 
+for which precounting was done in a python file (parallelCoordinateData.py)
 code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostock/1341021
+and https://gist.github.com/sebastian-meier/03df214f456fc100526a
+and https://bl.ocks.org/YuanyuanZh/28897524626fa3f1d4c0
 */
 
-function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode ) {
-
+function drawParallelCoordinatesGraph() {
+	
 	// update title so user knows which country is selected and which question is selected
 	d3.select( ".parallelOrientationsTitle" )
 		.append( "g" )
@@ -478,40 +492,25 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 	var height = 700 - margin.top - margin.bottom;
 
 	// preselect the appropriate data set for the question
-	var selectData;
+	var selectData = "";
+	var answerList = [];
 
 	if ( chosenQuestion == "basicIncomeAwareness" ) {
 
-		selectData = "parallelCoordinatesDataAwareness.csv";
+		selectData = parallelAwareness;
+		answerList = ["I understand it fully", "I know something about it", "I have heard just a little about it", "I have never heard of it"];
 	}
 	else if ( chosenQuestion == "basicIncomeEffect" ) {
 
-		selectData = "parallelCoordinatesDataEffect.csv";
+		selectData = parallelEffect;
+		answerList = ["I would vote for it", "I would probably vote for it", "I would probably vote against it", "I would vote against it", "I would not vote"];
 	}
 	else if ( chosenQuestion == "basicIncomeVote" ) {
 
-		selectData = "parallelCoordinatesDataVote.csv";
+		selectData = parallelVote;
+		answerList = ["I would stop working", "I would work less", "I would do more volunteering work", "I would spend more time with my family",
+		"I would look for a different job", "I would work as a freelancer", "I would gain additional skills", "A basic income would not affect my work choices", "None of the above"];
 	}
-	
-	console.log(selectData);
-	//  // make filter for all data that needs to be included in the graph
-	// var filter = d3.keys( globalData[0] )
-	// 	.filter( function( d ) { return d != "countryCode2" && d != "countryName" && d != "ageGroup" 
-	// 		&& d != "basicIncomeAwareness" && d != "basicIncomeVote" && d != "basicIncomeEffect" 
-	// 		&& d != "basicIncomeArgumentsFor" && d != "basicIncomeArgumentsAgainst" && d != "weight" } );
-
-	// filter.push( chosenQuestion );
-
-	// // filter data for specific country
-	// var filterData = [];
-
-	// for ( var h = 0; h < globalData.length; h++ ) {
-
-	// 	if ( countryCode == globalData[h].countryName ){
-
-	// 		filterData.push( globalData[h] );
-	// 	}
-	// }
 
 	var dimensions = [
 	{
@@ -556,7 +555,6 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 		type: "string"
 	}];
 
-
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
 	var dragging = {};
@@ -576,185 +574,191 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 		.append( "g" )
 			.attr( "transform", "translate( " + margin.left + "," + margin.top + " )" );
 	
-	d3.csv( selectData, function( error, selectedData ) {
+	// make filter for all data that needs to be included in the graph
+	var filter = d3.keys( selectData[0] )
+		.filter( function( d ) { return d != "countryName" } );
 
-		// checks for any errors
-		if (error) throw error;
+	// filter data for specific country
+	var filterData = [];
 
-		// make filter for all data that needs to be included in the graph
-		var filter = d3.keys( selectedData[0] )
-			.filter( function( d ) { return d != "countryName" } );
+	for ( var h = 0; h < selectData.length; h++ ) {
 
-		// filter data for specific country
-		var filterData = [];
+		if ( countryCode == selectData[h].countryName ){
 
-		for ( var h = 0; h < selectedData.length; h++ ) {
-
-			if ( countryCode == selectedData[h].countryName ){
-
-				filterData.push( selectedData[h] );
-			}
+			filterData.push( selectData[h] );
 		}
+	}
 
-		// calculate the x-scale positions
-		dimensions.forEach( function( dimension ) {
-			// console.log(filterData);
-			dimension.scale.domain( dimension.type === "number"
-				? d3.extent( filterData, function( d ) { return +d[dimension.name]; } )
-				: dimension.sort);
-		} )
-		
-		// add grey background lines for context
-		background = chart.append( "g" )
-				.attr( "class", "background" )
-			.selectAll( "path" )
-				.data( filterData )
-			.enter()
-			.append( "path" )
-			.attr( "d", draw );
-
-		// add blue foreground lines for focus
-		foreground = chart.append( "g" )
-				.attr( "class", "foreground" )
-			.selectAll( "path" )
-				.data( filterData )
-			.enter()
-			.append( "path" )
-			.attr( {"style": function( d ) { return "stroke: " + colors( d.count ); } } )
-			.attr( "data-legend", function( d ) { return d.count; } )
-			.attr( "d", draw );
-
-	  // add a group element for each dimension
-	  var g = chart.selectAll( ".dimension" )
-	  		.data( dimensions )
-		.enter()
-		.append( "g" )
-			.attr( "class", "dimension" )
-			.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } )
-		.call( d3.behavior.drag()
-				.origin( function( d ) { return { x: x( d.name ) }; } )
-			.on( "dragstart", function( d ) { 
-				// console.log("hoi");
-				dragging[d.name] = x( d.name );
-				background.attr( "visibility", "hidden" );
-				} ) 
-			.on( "drag", function( d ) {
-					dragging[d.name] = Math.min( width, Math.max( 0, d3.event.x ) );
-					foreground.attr( "d", draw );
-					dimensions.sort( function( a, b ) { return position( a ) - position( b ); } );
-					x.domain( dimensions.map( function( d ) { return d.name; } ) );
-					g.attr( "transform", function( d ) { return "translate(" + position( d ) + ")"; } )
-			} )
-			.on( "dragend", function( d ) {
-				delete dragging[d.name];
-				transition( d3.select( this ) )
-					.attr( "transform", "translate(" + x( d.name ) + ")" );
-				transition( foreground ).attr( "d", draw );
-				background
-					.attr("d", draw )
-					.transition()
-						.delay( 500 )
-						.duration( 0 )
-						.attr( "visibility", null );
-			} )
-		)
-
-		// add an axis and title
-		chart.selectAll( ".dimension" )
-			.append( "g" )
-				.attr( "class", "axis" )
-				.attr( "id", function( d ) { return d.name; } )
-				.each( function( d ) {console.log(d3.select(this).call(yAxis.scale(d.scale))); d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
-			.append( "text" )
-				.attr( "class", "title" )
-				.style( "text-anchor", "middle" )
-				.attr( "y", -9 )
-				.text( function( d ) { return d.name; });
-
-		// set text to right side of most right axis
-		d3.select( "#" + chosenQuestion )
-			.selectAll( ".tick" )
-				.select( "text" )
-					.style( "text-anchor", "start" )
-					.attr( "transform", "translate( 10, 0 )" );
-
-		// add and store a brush for each axis
-		chart.selectAll( ".dimension" )
-			.append( "g" )
-					.attr( "class", "brush" )
-				.each( function( d ) {
-
-					d3.select( this ).call( d.scale.brush = d3.svg.brush().y( d.scale ).on( "brushstart", brushstart ).on( "brush", brush) );
-				})
-				.selectAll( "rect" )
-					.attr( "x", -8 )
-					.attr( "width", 16 );
-
-		// make a legend
-		var legend = chart.append( "g" )
-			.attr( "class", "legenda" )
-			.attr( "transform", "translate( 580, 30 )" )
-			.style( "font-size", "12px" )
-			.call( d3. legend );
-
-		// returns path for given data point
-		function draw( d ) {
-
-			return line( dimensions.map( function ( dimension ) { 
-				var v = dragging[dimension.name];
-				var tx = v == null ? x( dimension.name ) : v;
-				return [tx, dimension.scale( d[dimension.name] )]; 
-			} ) )
-		}
-
-		function position( d ) {
-
-			var v = dragging[d.name];
-			return v == null ? x( d.name ) : v;
-		}
-
-		function transition( g ) {
-
-			return g.transition().duration( 500 );
-		}
-
-		function brushstart() { 
-
-			d3.event.sourceEvent.stopPropagation();
-		}
-
-		function brush() {
-
-			var actives = dimensions.filter( function( p ) { return !p.scale.brush.empty(); } );
-			var extents = actives.map( function( p ) { return p.scale.brush.extent(); } );
-
-			foreground.style( "display", function( d ) {
-				return actives.every( function( p, i ) { 
-
-					if ( p.type === "number" ) {
-						return extents[i][0] <= parseFloat(d[p.name]) && parseFloat(d[p.name]) <= extents[i][1];
-					}
-					else {
-						return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][1];
-					}
-				}) ? null : "none";
-			})
-		}
+	// calculate the x-scale positions
+	dimensions.forEach( function( dimension ) {
+		dimension.scale.domain( dimension.type === "number"
+			? d3.extent( filterData, function( d ) { return +d[dimension.name]; } )
+			: dimension.sort);
 	} )
+	
+	// add grey background lines for context
+	background = chart.append( "g" )
+			.attr( "class", "background" )
+			.attr( "class", function( d ) { d.chosenQuestion; } )
+		.selectAll( "path" )
+			.data( filterData )
+		.enter()
+		.append( "path" )
+		.attr( "d", draw );
+
+	// add blue foreground lines for focus
+	foreground = chart.append( "g" )
+			.attr( "class", "foreground" )
+			.attr( "class", function( d ) { d.chosenQuestion; } )
+		.selectAll( "path" )
+			.data( filterData )
+		.enter()
+		.append( "path" )
+		.attr( {"style": function( d ) { return "stroke: " + colors( d.count ); } } )
+		.attr( "data-legend", function( d ) { return d.count; } )
+		.attr( "d", draw );
+
+  // add a group element for each dimension
+  var g = chart.selectAll( ".dimension" )
+  		.data( dimensions )
+	.enter()
+	.append( "g" )
+		.attr( "class", "dimension" )
+		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } )
+	.call( d3.behavior.drag()
+			.origin( function( d ) { return { x: x( d.name ) }; } )
+		.on( "dragstart", function( d ) { 
+			dragging[d.name] = x( d.name );
+			background.attr( "visibility", "hidden" );
+			} ) 
+		.on( "drag", function( d ) {
+				dragging[d.name] = Math.min( width, Math.max( 0, d3.event.x ) );
+				foreground.attr( "d", draw );
+				dimensions.sort( function( a, b ) { return position( a ) - position( b ); } );
+				x.domain( dimensions.map( function( d ) { return d.name; } ) );
+				g.attr( "transform", function( d ) { return "translate(" + position( d ) + ")"; } )
+		} )
+		.on( "dragend", function( d ) {
+			delete dragging[d.name];
+			transition( d3.select( this ) )
+				.attr( "transform", "translate(" + x( d.name ) + ")" );
+			transition( foreground ).attr( "d", draw );
+			background
+				.attr("d", draw )
+				.transition()
+					.delay( 500 )
+					.duration( 0 )
+					.attr( "visibility", null );
+		} )
+	)
+
+	// add an axis and title
+	chart.selectAll( ".dimension" )
+		.append( "g" )
+			.attr( "class", "axis" )
+			.attr( "id", function( d ) { return d.name; } )
+			.each( function( d ) { d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
+		.append( "text" )
+			.attr( "class", "title" )
+			.style( "text-anchor", "middle" )
+			.attr( "y", -9 )
+			.text( function( d ) { return d.name; });
+
+	// set text to right side of most right axis
+	d3.select( "#" + chosenQuestion )
+		.selectAll( ".tick" )
+			.select( "text" )
+				.style( "text-anchor", "start" )
+				.attr( "transform", "translate( 10, 0 )" );
+
+	// add and store a brush for each axis
+	chart.selectAll( ".dimension" )
+		.append( "g" )
+				.attr( "class", "brush" )
+			.each( function( d ) {
+
+				d3.select( this ).call( d.scale.brush = d3.svg.brush().y( d.scale ).on( "brushstart", brushstart ).on( "brush", brush) );
+			})
+			.selectAll( "rect" )
+				.attr( "x", -8 )
+				.attr( "width", 16 );
+
+	// make a legend
+	var legend = chart.append( "g" )
+		.attr( "class", "legenda" )
+		.attr( "transform", "translate( 550, 30 )" )
+		.style( "font-size", "12px" )
+		.call( d3. legend );
+
+	// returns path for given data point
+	function draw( d ) {
+
+		return line( dimensions.map( function ( dimension ) {
+			var v = dragging[dimension.name];
+			var tx = v == null ? x( dimension.name ) : v;
+			return [tx, dimension.scale( d[dimension.name] )]; 
+		} ) )
+	}
+
+	function position( d ) {
+
+		var v = dragging[d.name];
+		return v == null ? x( d.name ) : v;
+	}
+
+	function transition( g ) {
+
+		return g.transition().duration( 500 );
+	}
+
+	function brushstart() { 
+
+		d3.event.sourceEvent.stopPropagation();
+	}
+
+	function brush() {
+
+		var actives = dimensions.filter( function( p ) { return !p.scale.brush.empty(); } );
+		var extents = actives.map( function( p ) { return p.scale.brush.extent(); } );
+
+		foreground.style( "display", function( d ) {
+			return actives.every( function( p, i ) { 
+
+				if ( p.type === "number" ) {
+					return extents[i][0] <= parseFloat(d[p.name]) && parseFloat(d[p.name]) <= extents[i][1];
+				}
+				else {
+					return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][1];
+				}
+			}) ? null : "none";
+		})
+	}
 }
 
 // updateParallelCoordinatesGraph function
-function updateParallelCoordinatesGraph( globalData, chosenQuestion, country ) {
+function updateParallelCoordinatesGraph( ) {
+
+	d3.select( ".parallelOrientationsTitle" )
+		.remove();
+
+	d3.selectAll( ".legend-box" )
+		.remove();
 
 	d3.select( ".parallelOrientations" )
 		.selectAll( "g" )
 		.remove();
 
-	drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph();
 }
 
-// function barUpdatesParallel
-function barUpdatesParallel( globalData, chosenQuestion, countryCode, answer ) {
+/* 
+function barUpdatesParallel
+updates the parallel coordinates graph upon click on bar of bar chart 
+and changes the data input for the parallel coordinates graph
+updating happens by removing graph and recalling the drawParallelCoordinatesGraph function
+*/
+
+function barUpdatesParallel() {
 
 	var answerData = [];
 
@@ -771,7 +775,7 @@ function barUpdatesParallel( globalData, chosenQuestion, countryCode, answer ) {
 		.selectAll( "g" )
 			.remove();
 
-	drawParallelCoordinatesGraph( answerData, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph();
 
 }
 
@@ -782,6 +786,17 @@ function calculates the total times a choice option is chosen by participants fr
 */
 function calculateChoice( globalData, chosenQuestion, countryCode ) {
 
+	// declare variables
+	var answer1 = "";
+	var answer2 = "";
+	var answer3 = "";
+	var answer4 = "";
+	var answer5 = "";
+	var answer6 = "";
+	var answer7 = "";
+	var answer8 = "";
+	var answer9 = "";
+
 	// select answer possibilities for the selected question
 	if ( chosenQuestion == "basicIncomeAwareness" ) {
 
@@ -789,11 +804,6 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 			answer2 = "I know something about it";
 			answer3 = "I have heard just a little about it";
 			answer4 = "I have never heard of it";
-			answer5 = "";
-			answer6 = "";
-			answer7 = "";
-			answer8 = "";
-			answer9 = "";
 		}
 		else if ( chosenQuestion == "basicIncomeVote" ) {
 
@@ -802,10 +812,6 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 			answer3 = "I would probably vote against it";
 			answer4 = "I would vote against it";
 			answer5 = "I would not vote";
-			answer6 = "";
-			answer7 = "";
-			answer8 = "";
-			answer9 = "";
 		}
 		else if ( chosenQuestion == "basicIncomeEffect" ) {
 
@@ -922,7 +928,7 @@ function calculateChoice( globalData, chosenQuestion, countryCode ) {
 			colorCountries = ["#EC407A", "#90CAF9", "#512DA8", "#C62828", "#004D40", "#FF9800", "#AFB42B", "#00E5FF", "#FFE082"];
 		}
 	}
-	console.log(choicesPercentages);
+	
 	for ( var l = 0; l < choicesPercentages.length; l++ ) {
 
 		if ( choiceMax < choicesPercentages[l] ) {

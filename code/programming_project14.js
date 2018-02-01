@@ -22,9 +22,10 @@ window.onload = function main() {
 	// })
 
 	drawMap();
+
 	d3.queue()
 		.defer( d3.csv, "basicIncomeDoubleCountries.csv" )
-		.defer( d3.csv, "parallelCoordinatesDataAwareness.csv" )
+		.defer( d3.csv, "parallelCoordinatesDataAwaraness.csv" )
 		.defer( d3.csv, "parallelCoordinatesDataEffect.csv" )
 		.defer( d3.csv, "parallelCoordinatesDataVote.csv" )
 		.await( dataLoaded );
@@ -32,7 +33,7 @@ window.onload = function main() {
 }
 
 // loadData
-function dataLoaded( error, loadedData, parallelAwarenessData, parallelVoteData, parallelEffectData ) {
+function dataLoaded( error, loadedData, parallelAwarenessData, parallelEffectData, parallelVoteData ) {
 	if (error) throw error;
 
 	globalData = loadedData;
@@ -41,7 +42,7 @@ function dataLoaded( error, loadedData, parallelAwarenessData, parallelVoteData,
 	parallelEffect = parallelEffectData; 
 	colorMap( globalData, chosenQuestion );
 	drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode );
-	drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph();
 	
 }
 
@@ -473,8 +474,8 @@ function updateBarGraph( option ){
 code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostock/1341021
 */
 
-function drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode ) {
-
+function drawParallelCoordinatesGraph() {
+	console.log(chosenQuestion);
 	// update title so user knows which country is selected and which question is selected
 	d3.select( ".parallelOrientationsTitle" )
 		.append( "g" )
@@ -487,20 +488,27 @@ function drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVo
 	var height = 700 - margin.top - margin.bottom;
 
 	// preselect the appropriate data set for the question
-	var selectData;
+	var selectData = "";
+	var answerList = [];
 
 	if ( chosenQuestion == "basicIncomeAwareness" ) {
 
 		selectData = parallelAwareness;
+		answerList = ["I understand it fully", "I know something about it", "I have heard just a little about it", "I have never heard of it"];
 	}
 	else if ( chosenQuestion == "basicIncomeEffect" ) {
 
 		selectData = parallelEffect;
+		answerList = ["I would vote for it", "I would probably vote for it", "I would probably vote against it", "I would vote against it", "I would not vote"];
 	}
 	else if ( chosenQuestion == "basicIncomeVote" ) {
 
 		selectData = parallelVote;
+		answerList = ["I would stop working", "I would work less", "I would do more volunteering work", "I would spend more time with my family",
+		"I would look for a different job", "I would work as a freelancer", "I would gain additional skills", "A basic income would not affect my work choices", "None of the above"];
 	}
+	console.log(chosenQuestion);
+	console.log(selectData);
 	
 	//  // make filter for all data that needs to be included in the graph
 	// var filter = d3.keys( globalData[0] )
@@ -564,7 +572,7 @@ function drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVo
 		type: "string"
 	}];
 
-
+	console.log(dimensions[6].sort);
 	// declare other variables
 	var x = d3.scale.ordinal().domain( dimensions.map( function( d ) { return d.name; } ) ).rangePoints( [0, width] );
 	var dragging = {};
@@ -585,17 +593,17 @@ function drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVo
 			.attr( "transform", "translate( " + margin.left + "," + margin.top + " )" );
 	
 	// make filter for all data that needs to be included in the graph
-	var filter = d3.keys( selectedData[0] )
+	var filter = d3.keys( selectData[0] )
 		.filter( function( d ) { return d != "countryName" } );
 
 	// filter data for specific country
 	var filterData = [];
 
-	for ( var h = 0; h < selectedData.length; h++ ) {
+	for ( var h = 0; h < selectData.length; h++ ) {
 
-		if ( countryCode == selectedData[h].countryName ){
+		if ( countryCode == selectData[h].countryName ){
 
-			filterData.push( selectedData[h] );
+			filterData.push( selectData[h] );
 		}
 	}
 
@@ -703,9 +711,10 @@ function drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVo
 	// returns path for given data point
 	function draw( d ) {
 
-		return line( dimensions.map( function ( dimension ) { 
+		return line( dimensions.map( function ( dimension ) {
 			var v = dragging[dimension.name];
 			var tx = v == null ? x( dimension.name ) : v;
+			console.log([tx, d ]);
 			return [tx, dimension.scale( d[dimension.name] )]; 
 		} ) )
 	}
@@ -746,13 +755,16 @@ function drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVo
 }
 
 // updateParallelCoordinatesGraph function
-function updateParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode ) {
+function updateParallelCoordinatesGraph( ) {
+
+	d3.selectAll( ".legend-box" )
+		.remove();
 
 	d3.select( ".parallelOrientations" )
 		.selectAll( "g" )
 		.remove();
 
-	drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph();
 }
 
 // // function barUpdatesParallel

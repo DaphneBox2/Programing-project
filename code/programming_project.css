@@ -15,7 +15,7 @@ p1{
 /*Style tab buttons*/
 .tab button{
 	background-color: inhirit;
-	float: right;
+	float: left;
 	border: none;
 	outline: none;
 	cursor: pointer;

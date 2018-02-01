@@ -4,6 +4,9 @@ this javascript file is the main file for my programming project where all impor
 */
 
 var globalData;
+var parallelAwareness;
+var parallelVote;
+var parallelEffect;
 var chosenQuestion = "basicIncomeVote";
 var countryCode = "Germany";
 var chosenOption = "answerOrder";
@@ -21,18 +24,24 @@ window.onload = function main() {
 	drawMap();
 	d3.queue()
 		.defer( d3.csv, "basicIncomeDoubleCountries.csv" )
+		.defer( d3.csv, "parallelCoordinatesDataAwareness.csv" )
+		.defer( d3.csv, "parallelCoordinatesDataEffect.csv" )
+		.defer( d3.csv, "parallelCoordinatesDataVote.csv" )
 		.await( dataLoaded );
 	
 }
 
 // loadData
-function dataLoaded( error, loadedData ) {
+function dataLoaded( error, loadedData, parallelAwarenessData, parallelVoteData, parallelEffectData ) {
 	if (error) throw error;
 
 	globalData = loadedData;
+	parallelAwareness = parallelAwarenessData;
+	parallelVote = parallelVoteData;
+	parallelEffect = parallelEffectData; 
 	colorMap( globalData, chosenQuestion );
 	drawBarGraph( chosenOption, globalData, chosenQuestion, countryCode );
-	drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode );
 	
 }
 
@@ -136,7 +145,7 @@ function drawMap() {
 
 						countryCode = d3.select( this ).attr( "id" );
 						updateBarGraph( chosenOption, globalData, chosenQuestion, countryCode ); 
-						updateParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+						updateParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode );
 					} );
 
 			function showToolTip( d, mouseX, mouseY ) {
@@ -464,7 +473,7 @@ function updateBarGraph( option ){
 code for parallel coordinates graph is derived from: https://bl.ocks.org/mbostock/1341021
 */
 
-function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode ) {
+function drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode ) {
 
 	// update title so user knows which country is selected and which question is selected
 	d3.select( ".parallelOrientationsTitle" )
@@ -482,18 +491,17 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 
 	if ( chosenQuestion == "basicIncomeAwareness" ) {
 
-		selectData = "parallelCoordinatesDataAwareness.csv";
+		selectData = parallelAwareness;
 	}
 	else if ( chosenQuestion == "basicIncomeEffect" ) {
 
-		selectData = "parallelCoordinatesDataEffect.csv";
+		selectData = parallelEffect;
 	}
 	else if ( chosenQuestion == "basicIncomeVote" ) {
 
-		selectData = "parallelCoordinatesDataVote.csv";
+		selectData = parallelVote;
 	}
 	
-	console.log(selectData);
 	//  // make filter for all data that needs to be included in the graph
 	// var filter = d3.keys( globalData[0] )
 	// 	.filter( function( d ) { return d != "countryCode2" && d != "countryName" && d != "ageGroup" 
@@ -576,204 +584,198 @@ function drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode )
 		.append( "g" )
 			.attr( "transform", "translate( " + margin.left + "," + margin.top + " )" );
 	
-	d3.csv( selectData, function( error, selectedData ) {
+	// make filter for all data that needs to be included in the graph
+	var filter = d3.keys( selectedData[0] )
+		.filter( function( d ) { return d != "countryName" } );
 
-		// checks for any errors
-		if (error) throw error;
+	// filter data for specific country
+	var filterData = [];
 
-		// make filter for all data that needs to be included in the graph
-		var filter = d3.keys( selectedData[0] )
-			.filter( function( d ) { return d != "countryName" } );
+	for ( var h = 0; h < selectedData.length; h++ ) {
 
-		// filter data for specific country
-		var filterData = [];
+		if ( countryCode == selectedData[h].countryName ){
 
-		for ( var h = 0; h < selectedData.length; h++ ) {
-
-			if ( countryCode == selectedData[h].countryName ){
-
-				filterData.push( selectedData[h] );
-			}
+			filterData.push( selectedData[h] );
 		}
+	}
 
-		// calculate the x-scale positions
-		dimensions.forEach( function( dimension ) {
-			// console.log(filterData);
-			dimension.scale.domain( dimension.type === "number"
-				? d3.extent( filterData, function( d ) { return +d[dimension.name]; } )
-				: dimension.sort);
-		} )
-		
-		// add grey background lines for context
-		background = chart.append( "g" )
-				.attr( "class", "background" )
-			.selectAll( "path" )
-				.data( filterData )
-			.enter()
-			.append( "path" )
-			.attr( "d", draw );
-
-		// add blue foreground lines for focus
-		foreground = chart.append( "g" )
-				.attr( "class", "foreground" )
-			.selectAll( "path" )
-				.data( filterData )
-			.enter()
-			.append( "path" )
-			.attr( {"style": function( d ) { return "stroke: " + colors( d.count ); } } )
-			.attr( "data-legend", function( d ) { return d.count; } )
-			.attr( "d", draw );
-
-	  // add a group element for each dimension
-	  var g = chart.selectAll( ".dimension" )
-	  		.data( dimensions )
-		.enter()
-		.append( "g" )
-			.attr( "class", "dimension" )
-			.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } )
-		.call( d3.behavior.drag()
-				.origin( function( d ) { return { x: x( d.name ) }; } )
-			.on( "dragstart", function( d ) { 
-				// console.log("hoi");
-				dragging[d.name] = x( d.name );
-				background.attr( "visibility", "hidden" );
-				} ) 
-			.on( "drag", function( d ) {
-					dragging[d.name] = Math.min( width, Math.max( 0, d3.event.x ) );
-					foreground.attr( "d", draw );
-					dimensions.sort( function( a, b ) { return position( a ) - position( b ); } );
-					x.domain( dimensions.map( function( d ) { return d.name; } ) );
-					g.attr( "transform", function( d ) { return "translate(" + position( d ) + ")"; } )
-			} )
-			.on( "dragend", function( d ) {
-				delete dragging[d.name];
-				transition( d3.select( this ) )
-					.attr( "transform", "translate(" + x( d.name ) + ")" );
-				transition( foreground ).attr( "d", draw );
-				background
-					.attr("d", draw )
-					.transition()
-						.delay( 500 )
-						.duration( 0 )
-						.attr( "visibility", null );
-			} )
-		)
-
-		// add an axis and title
-		chart.selectAll( ".dimension" )
-			.append( "g" )
-				.attr( "class", "axis" )
-				.attr( "id", function( d ) { return d.name; } )
-				.each( function( d ) {console.log(d3.select(this).call(yAxis.scale(d.scale))); d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
-			.append( "text" )
-				.attr( "class", "title" )
-				.style( "text-anchor", "middle" )
-				.attr( "y", -9 )
-				.text( function( d ) { return d.name; });
-
-		// set text to right side of most right axis
-		d3.select( "#" + chosenQuestion )
-			.selectAll( ".tick" )
-				.select( "text" )
-					.style( "text-anchor", "start" )
-					.attr( "transform", "translate( 10, 0 )" );
-
-		// add and store a brush for each axis
-		chart.selectAll( ".dimension" )
-			.append( "g" )
-					.attr( "class", "brush" )
-				.each( function( d ) {
-
-					d3.select( this ).call( d.scale.brush = d3.svg.brush().y( d.scale ).on( "brushstart", brushstart ).on( "brush", brush) );
-				})
-				.selectAll( "rect" )
-					.attr( "x", -8 )
-					.attr( "width", 16 );
-
-		// make a legend
-		var legend = chart.append( "g" )
-			.attr( "class", "legenda" )
-			.attr( "transform", "translate( 580, 30 )" )
-			.style( "font-size", "12px" )
-			.call( d3. legend );
-
-		// returns path for given data point
-		function draw( d ) {
-
-			return line( dimensions.map( function ( dimension ) { 
-				var v = dragging[dimension.name];
-				var tx = v == null ? x( dimension.name ) : v;
-				return [tx, dimension.scale( d[dimension.name] )]; 
-			} ) )
-		}
-
-		function position( d ) {
-
-			var v = dragging[d.name];
-			return v == null ? x( d.name ) : v;
-		}
-
-		function transition( g ) {
-
-			return g.transition().duration( 500 );
-		}
-
-		function brushstart() { 
-
-			d3.event.sourceEvent.stopPropagation();
-		}
-
-		function brush() {
-
-			var actives = dimensions.filter( function( p ) { return !p.scale.brush.empty(); } );
-			var extents = actives.map( function( p ) { return p.scale.brush.extent(); } );
-
-			foreground.style( "display", function( d ) {
-				return actives.every( function( p, i ) { 
-
-					if ( p.type === "number" ) {
-						return extents[i][0] <= parseFloat(d[p.name]) && parseFloat(d[p.name]) <= extents[i][1];
-					}
-					else {
-						return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][1];
-					}
-				}) ? null : "none";
-			})
-		}
+	// calculate the x-scale positions
+	dimensions.forEach( function( dimension ) {
+		// console.log(filterData);
+		dimension.scale.domain( dimension.type === "number"
+			? d3.extent( filterData, function( d ) { return +d[dimension.name]; } )
+			: dimension.sort);
 	} )
+	
+	// add grey background lines for context
+	background = chart.append( "g" )
+			.attr( "class", "background" )
+		.selectAll( "path" )
+			.data( filterData )
+		.enter()
+		.append( "path" )
+		.attr( "d", draw );
+
+	// add blue foreground lines for focus
+	foreground = chart.append( "g" )
+			.attr( "class", "foreground" )
+		.selectAll( "path" )
+			.data( filterData )
+		.enter()
+		.append( "path" )
+		.attr( {"style": function( d ) { return "stroke: " + colors( d.count ); } } )
+		.attr( "data-legend", function( d ) { return d.count; } )
+		.attr( "d", draw );
+
+  // add a group element for each dimension
+  var g = chart.selectAll( ".dimension" )
+  		.data( dimensions )
+	.enter()
+	.append( "g" )
+		.attr( "class", "dimension" )
+		.attr( "transform", function( d ) { return "translate( " + x( d.name ) + " )"; } )
+	.call( d3.behavior.drag()
+			.origin( function( d ) { return { x: x( d.name ) }; } )
+		.on( "dragstart", function( d ) { 
+			// console.log("hoi");
+			dragging[d.name] = x( d.name );
+			background.attr( "visibility", "hidden" );
+			} ) 
+		.on( "drag", function( d ) {
+				dragging[d.name] = Math.min( width, Math.max( 0, d3.event.x ) );
+				foreground.attr( "d", draw );
+				dimensions.sort( function( a, b ) { return position( a ) - position( b ); } );
+				x.domain( dimensions.map( function( d ) { return d.name; } ) );
+				g.attr( "transform", function( d ) { return "translate(" + position( d ) + ")"; } )
+		} )
+		.on( "dragend", function( d ) {
+			delete dragging[d.name];
+			transition( d3.select( this ) )
+				.attr( "transform", "translate(" + x( d.name ) + ")" );
+			transition( foreground ).attr( "d", draw );
+			background
+				.attr("d", draw )
+				.transition()
+					.delay( 500 )
+					.duration( 0 )
+					.attr( "visibility", null );
+		} )
+	)
+
+	// add an axis and title
+	chart.selectAll( ".dimension" )
+		.append( "g" )
+			.attr( "class", "axis" )
+			.attr( "id", function( d ) { return d.name; } )
+			.each( function( d ) {console.log(d3.select(this).call(yAxis.scale(d.scale))); d3.select( this ).call( yAxis.scale( d.scale ) ); } ) 
+		.append( "text" )
+			.attr( "class", "title" )
+			.style( "text-anchor", "middle" )
+			.attr( "y", -9 )
+			.text( function( d ) { return d.name; });
+
+	// set text to right side of most right axis
+	d3.select( "#" + chosenQuestion )
+		.selectAll( ".tick" )
+			.select( "text" )
+				.style( "text-anchor", "start" )
+				.attr( "transform", "translate( 10, 0 )" );
+
+	// add and store a brush for each axis
+	chart.selectAll( ".dimension" )
+		.append( "g" )
+				.attr( "class", "brush" )
+			.each( function( d ) {
+
+				d3.select( this ).call( d.scale.brush = d3.svg.brush().y( d.scale ).on( "brushstart", brushstart ).on( "brush", brush) );
+			})
+			.selectAll( "rect" )
+				.attr( "x", -8 )
+				.attr( "width", 16 );
+
+	// make a legend
+	var legend = chart.append( "g" )
+		.attr( "class", "legenda" )
+		.attr( "transform", "translate( 550, 30 )" )
+		.style( "font-size", "12px" )
+		.call( d3. legend );
+
+	// returns path for given data point
+	function draw( d ) {
+
+		return line( dimensions.map( function ( dimension ) { 
+			var v = dragging[dimension.name];
+			var tx = v == null ? x( dimension.name ) : v;
+			return [tx, dimension.scale( d[dimension.name] )]; 
+		} ) )
+	}
+
+	function position( d ) {
+
+		var v = dragging[d.name];
+		return v == null ? x( d.name ) : v;
+	}
+
+	function transition( g ) {
+
+		return g.transition().duration( 500 );
+	}
+
+	function brushstart() { 
+
+		d3.event.sourceEvent.stopPropagation();
+	}
+
+	function brush() {
+
+		var actives = dimensions.filter( function( p ) { return !p.scale.brush.empty(); } );
+		var extents = actives.map( function( p ) { return p.scale.brush.extent(); } );
+
+		foreground.style( "display", function( d ) {
+			return actives.every( function( p, i ) { 
+
+				if ( p.type === "number" ) {
+					return extents[i][0] <= parseFloat(d[p.name]) && parseFloat(d[p.name]) <= extents[i][1];
+				}
+				else {
+					return extents[i][0] <= p.scale( d[p.name] ) && p.scale( d[p.name] ) <= extents[i][1];
+				}
+			}) ? null : "none";
+		})
+	}
 }
 
 // updateParallelCoordinatesGraph function
-function updateParallelCoordinatesGraph( globalData, chosenQuestion, country ) {
+function updateParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode ) {
 
 	d3.select( ".parallelOrientations" )
 		.selectAll( "g" )
 		.remove();
 
-	drawParallelCoordinatesGraph( globalData, chosenQuestion, countryCode );
+	drawParallelCoordinatesGraph( globalData, parallelAwareness, parallelVote, parallelEffect, chosenQuestion, countryCode );
 }
 
-// function barUpdatesParallel
-function barUpdatesParallel( globalData, chosenQuestion, countryCode, answer ) {
+// // function barUpdatesParallel
+// function barUpdatesParallel( globalData, chosenQuestion, countryCode, answer ) {
 
-	var answerData = [];
+// 	var answerData = [];
 
-	for ( var i = 0; i < globalData.length; i++ ) {
+// 	for ( var i = 0; i < globalData.length; i++ ) {
 
-		if ( globalData[i].countryName == countryCode && globalData[i][chosenQuestion] == answer ) {
+// 		if ( globalData[i].countryName == countryCode && globalData[i][chosenQuestion] == answer ) {
 
-			answerData.push( globalData[i] );
-		}
-	}
+// 			answerData.push( globalData[i] );
+// 		}
+// 	}
 	
-	// redraw lines
-	d3.select( ".parallelOrientations" )
-		.selectAll( "g" )
-			.remove();
+// 	// redraw lines
+// 	d3.select( ".parallelOrientations" )
+// 		.selectAll( "g" )
+// 			.remove();
 
-	drawParallelCoordinatesGraph( answerData, chosenQuestion, countryCode );
+// 	drawParallelCoordinatesGraph( answerData, chosenQuestion, countryCode );
 
-}
+// }
 
 
 /* 

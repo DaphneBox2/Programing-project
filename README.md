@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Programing-project
 Name: Daphne Box
 Student number: 10455701 
@@ -18,8 +19,9 @@ Because at present there are no visualizations available about the public opinio
 Solution of the problem
 The solution to this problem is to create a website that shows a map of Europe where the countries are colored according to a specific opinion about an aspect of the basic income and when clicked on the country the division of that opinion over the population is shown in total and all respondents and demographics of respondents of the interviewed people is shown in a parallel orientations graph, the parallel orientations graph and bar graph will interact on click/selection basis (only when enough time is left).
 
-Datasets
-The dataset that is used to build this website comes from kaggle.com. Furthermore, I will likely need to use the following libraries: d3, d3-tip, d3-queue, topojson, d3.legend.
+## Datasets
+The dataset that is used to build this website comes from kaggle.com.
+Furthermore, I will likely need to use the following libraries: d3, d3-tip, d3-queue, topojson, d3.legend.  
 
 Visualisations
 ![](doc/basic_idea_webpage2.png)

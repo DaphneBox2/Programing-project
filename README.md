@@ -1,6 +1,13 @@
 # Programing-project
 Name: Daphne Box  
 Student number: 10455701
+GitHubPages: DaphneBox2.github.io/Programing-project/code/programming_project
+
+## Project name
+Opionions about basic income
+
+## Purpose of the project
+This projects aim is to inform the user about the current opinions of people living in one of the European Union member countries.
 
 ## Background of the project
 The last couple of years the idea of a basic income is regaining public interest and the discussion about the basic income resurgence.
@@ -14,8 +21,11 @@ The solution to this problem is to create a website that shows a map of Europe w
 
 ## Datasets
 The dataset that is used to build this website comes from kaggle.com.
-Furthermore, I will likely need to use the following libraries: d3, d3-tip, d3-queue, topojson/datamaps.  
+Furthermore, I will likely need to use the following libraries: d3, d3-tip, d3-queue, topojson, d3.legend.  
 
 ## Visualisation
 ![](doc/basic_idea_webpage2.png)
+
+## Copy right statement
+This code has an open source copyright statement.
 

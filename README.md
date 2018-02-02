@@ -1,8 +1,8 @@
-<<<<<<< HEAD
 Programing-project
 Name: Daphne Box
 Student number: 10455701 
 GitHubPages: DaphneBox2.github.io/Programing-project/index.html
+Link demo video: https://www.youtube.com/watch?v=xSbRPTK02dc&feature=youtu.be
 
 Project name
 Opionions about basic income
